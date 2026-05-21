@@ -25,10 +25,8 @@ var fetchCmd = &cobra.Command{
 		proc := processor.NewWikiProcessor(out)
 
 		if filePath != "" {
-			// Batch processing mode
 			runBatch(filePath, workers, lang, proc)
 		} else {
-			// Single item mode
 			if len(args) < 2 {
 				fmt.Println("Please provide source and id, or use --file")
 				return
@@ -45,10 +43,7 @@ func runSingle(source, id, lang string, proc *processor.WikiProcessor) {
 		return
 	}
 
-	// Auto-tagging
 	tags := utils.ExtractKeywords(text, 5)
-
-	// Local Summarization
 	summary := utils.Summarize(text, 3)
 
 	sourceDir := source
@@ -59,8 +54,7 @@ func runSingle(source, id, lang string, proc *processor.WikiProcessor) {
 		sourceDir = "github"
 	}
 	if source == "arxiv" {
-		sourceDir = "papers"
-	}
+		sourceDir = "papers" }
 	if source == "hf" {
 		sourceDir = "huggingface"
 	}
@@ -71,7 +65,7 @@ func runSingle(source, id, lang string, proc *processor.WikiProcessor) {
 	safeID := id
 	if source == "gh" || source == "github" || source == "hf" || source == "huggingface" {
 		safeID = strings.ReplaceAll(id, "/", "_")
-	} else if source == "web" {
+	} else if source == "web" || source == "reddit" {
 		safeID = strings.ReplaceAll(strings.ReplaceAll(id, "https://", ""), "/", "_")
 		if len(safeID) > 100 {
 			safeID = safeID[:100]
@@ -107,6 +101,9 @@ func dispatchFetch(source, id, lang string) (string, string, error) {
 	case "x", "twitter":
 		f := &harvester.TwitterFetcher{}
 		return f.Fetch(id)
+	case "reddit":
+		f := &harvester.RedditFetcher{}
+		return f.Fetch(id)
 	default:
 		return "", "", fmt.Errorf("unsupported source: %s", source)
 	}
@@ -128,7 +125,6 @@ func runBatch(filePath string, numWorkers int, lang string, proc *processor.Wiki
 	jobs := make(chan job)
 	var wg sync.WaitGroup
 
-	// Start workers
 	for i := 1; i <= numWorkers; i++ {
 		wg.Add(1)
 		go func(workerID int) {
@@ -139,7 +135,6 @@ func runBatch(filePath string, numWorkers int, lang string, proc *processor.Wiki
 		}(i)
 	}
 
-	// Feed jobs
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -147,12 +142,10 @@ func runBatch(filePath string, numWorkers int, lang string, proc *processor.Wiki
 			continue
 		}
 
-		// Expected format: "source id" or just "id" (if we could auto-detect, but let's stick to source id for now)
 		parts := strings.Fields(line)
 		if len(parts) >= 2 {
 			jobs <- job{source: parts[0], id: parts[1]}
 		} else {
-			// Auto-detection attempt
 			id := parts[0]
 			source := autoDetectSource(id)
 			if source != "" {
@@ -182,6 +175,9 @@ func autoDetectSource(input string) string {
 	}
 	if strings.Contains(input, "twitter.com") || strings.Contains(input, "x.com") {
 		return "x"
+	}
+	if strings.Contains(input, "reddit.com") {
+		return "reddit"
 	}
 	if strings.HasPrefix(input, "http") {
 		return "web"
