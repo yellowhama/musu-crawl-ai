@@ -11,6 +11,7 @@ A high-performance, concurrent knowledge harvester and Wiki generator designed f
 - [x] **Arxiv:** Metadata (Abstract) and PDF text extraction.
 - [x] **Hugging Face:** Model Card (README) and YAML metadata parsing.
 - [x] **General Web:** Content extraction using Readability algorithms (noise removal).
+- [x] **Reddit:** Content extraction via JSON API for posts and subreddit listings.
 
 ### Phase 4: Social Data
 - [x] **Twitter/X:** Implementation via Syndication API + **OEmbed Fallback** for 404 resilience.
