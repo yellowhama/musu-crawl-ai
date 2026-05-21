@@ -1,0 +1,189 @@
+package processor
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"time"
+
+	"github.com/blevesearch/bleve/v2"
+	"gopkg.in/yaml.v3"
+)
+
+type WikiProcessor struct {
+	BaseDir string
+}
+
+type IndexEntry struct {
+	ID      string   `json:"id"`
+	Title   string   `json:"title"`
+	Source  string   `json:"source"`
+	Path    string   `json:"path"`
+	Date    string   `json:"date"`
+	Tags    []string `json:"tags,omitempty"`
+	Summary string   `json:"summary,omitempty"`
+	Content string   `json:"-"` // Not in JSON but indexed in Bleve
+}
+
+func NewWikiProcessor(baseDir string) *WikiProcessor {
+	return &WikiProcessor{BaseDir: baseDir}
+}
+
+func (p *WikiProcessor) SaveToWiki(source, id, title, content string, tags []string, summary string) (string, error) {
+	dir := filepath.Join(p.BaseDir, source)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return "", err
+	}
+
+	safeTitle := sanitizeFilename(title)
+	filename := fmt.Sprintf("%s_%s.md", id, safeTitle)
+	if len(filename) > 200 {
+		filename = filename[:200] + ".md"
+	}
+	path := filepath.Join(dir, filename)
+
+	// Build Markdown with Frontmatter
+	var sb strings.Builder
+	sb.WriteString("---\n")
+	sb.WriteString(fmt.Sprintf("title: %q\n", title))
+	sb.WriteString(fmt.Sprintf("source: %s\n", source))
+	sb.WriteString(fmt.Sprintf("id: %s\n", id))
+	sb.WriteString(fmt.Sprintf("date: %s\n", time.Now().Format("2006-01-02")))
+	if len(tags) > 0 {
+		sb.WriteString("tags:\n")
+		for _, t := range tags {
+			sb.WriteString(fmt.Sprintf("  - %s\n", t))
+		}
+	}
+	if summary != "" {
+		sb.WriteString(fmt.Sprintf("summary: %q\n", summary))
+	}
+	sb.WriteString("---\n\n")
+	sb.WriteString(content)
+
+	if err := os.WriteFile(path, []byte(sb.String()), 0644); err != nil {
+		return "", err
+	}
+
+	// Update Index (Master README and JSON)
+	p.UpdateIndex()
+
+	return filename, nil
+}
+
+func (p *WikiProcessor) UpdateIndex() error {
+	indexFile := filepath.Join(p.BaseDir, "README.md")
+	jsonFile := filepath.Join(p.BaseDir, "index.json")
+	blevePath := filepath.Join(p.BaseDir, "musu.bleve")
+
+	// Bleve setup
+	var index bleve.Index
+	var err error
+	if _, statErr := os.Stat(blevePath); os.IsNotExist(statErr) {
+		mapping := bleve.NewIndexMapping()
+		index, err = bleve.New(blevePath, mapping)
+	} else {
+		index, err = bleve.Open(blevePath)
+	}
+	if err != nil {
+		return fmt.Errorf("failed to open bleve: %v", err)
+	}
+	defer index.Close()
+
+	var sb strings.Builder
+	sb.WriteString("# Musu Crawl Wiki Index\n\n")
+	sb.WriteString("Automated knowledge repository.\n\n")
+
+	var entries []IndexEntry
+
+	err = filepath.Walk(p.BaseDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() || filepath.Base(path) == "README.md" || filepath.Base(path) == "index.json" || strings.HasSuffix(path, ".bleve") {
+			return nil
+		}
+		if filepath.Ext(path) != ".md" {
+			return nil
+		}
+
+		rel, _ := filepath.Rel(p.BaseDir, path)
+		link := strings.ReplaceAll(rel, "\\", "/")
+
+		// Parse frontmatter
+		entry, docContent, _ := p.parseFrontmatterWithContent(path, link)
+		if entry != nil {
+			entry.Content = docContent
+			entries = append(entries, *entry)
+
+			// Index to Bleve
+			index.Index(entry.ID, entry)
+
+			sb.WriteString(fmt.Sprintf("* [%s](%s) (%s)\n", entry.Title, entry.Path, entry.Source))
+		} else {
+			name := strings.TrimSuffix(filepath.Base(path), ".md")
+			sb.WriteString(fmt.Sprintf("* [%s](%s)\n", name, link))
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// Save README.md
+	os.WriteFile(indexFile, []byte(sb.String()), 0644)
+
+	// Save index.json
+	jsonData, _ := json.MarshalIndent(entries, "", "  ")
+	return os.WriteFile(jsonFile, jsonData, 0644)
+}
+
+func (p *WikiProcessor) parseFrontmatterWithContent(path string, relPath string) (*IndexEntry, string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, "", err
+	}
+
+	content := string(data)
+	if !strings.HasPrefix(content, "---") {
+		return nil, "", fmt.Errorf("no frontmatter")
+	}
+
+	endIdx := strings.Index(content[3:], "---")
+	if endIdx == -1 {
+		return nil, "", fmt.Errorf("invalid frontmatter")
+	}
+
+	yamlPart := content[3 : endIdx+3]
+	docContent := strings.TrimSpace(content[endIdx+6:])
+
+	var meta struct {
+		Title   string   `yaml:"title"`
+		Source  string   `yaml:"source"`
+		ID      string   `yaml:"id"`
+		Date    string   `yaml:"date"`
+		Tags    []string `yaml:"tags"`
+		Summary string   `yaml:"summary"`
+	}
+
+	if err := yaml.Unmarshal([]byte(yamlPart), &meta); err != nil {
+		return nil, "", err
+	}
+
+	return &IndexEntry{
+		ID:      meta.ID,
+		Title:   meta.Title,
+		Source:  meta.Source,
+		Path:    relPath,
+		Date:    meta.Date,
+		Tags:    meta.Tags,
+		Summary: meta.Summary,
+	}, docContent, nil
+}
+
+func sanitizeFilename(s string) string {
+	re := regexp.MustCompile(`[<>:"/\\|?*]`)
+	return re.ReplaceAllString(s, "_")
+}
