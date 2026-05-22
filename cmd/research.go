@@ -54,7 +54,7 @@ var researchCmd = &cobra.Command{
 				source = "web"
 			}
 			
-			text, err := RunSingle(source, url, "en", proc)
+			text, err := RunSingle(source, url, "en", proc, false, "")
 			if err != nil {
 				fmt.Printf("   ⚠️  Skip [%s]: %v\n", url, err)
 				continue

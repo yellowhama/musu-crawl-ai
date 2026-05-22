@@ -34,6 +34,11 @@ A high-performance, concurrent knowledge harvester and Wiki generator designed f
 - [x] **Discovery Engine:** Implemented **Searcher agent** (DuckDuckGo) to autonomously find relevant URLs.
 - [x] **Recursive Research Loop:** Added the `research` command which orchestrates the entire flow: Question -> Plan -> Discover -> Harvest -> Synthesize.
 
+### Phase 11: LLM Wiki Compiler Agent (New)
+- [x] **Knowledge Compounding:** Implemented **Compiler agent** to autonomously discover relationships between documents.
+- [x] **Auto-Linking:** Automatically generates `[[Wiki-style]]` cross-links and relationship explanations using local Ollama reasoning.
+- [x] **LLM Wiki Pattern:** Transitioned from a simple harvester to a persistent, interlinked knowledge system.
+
 ## 🧐 Qualitative Evaluation (Code Audit)
 
 ### 1. Autonomy & Steering

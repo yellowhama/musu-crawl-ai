@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/spf13/cobra"
+	"github.com/yellowhama/musu-crawl-ai/internal/agent"
 	"github.com/yellowhama/musu-crawl-ai/internal/harvester"
 	"github.com/yellowhama/musu-crawl-ai/internal/processor"
 	"github.com/yellowhama/musu-crawl-ai/internal/utils"
@@ -21,22 +23,24 @@ var fetchCmd = &cobra.Command{
 		workers, _ := cmd.Flags().GetInt("workers")
 		lang, _ := cmd.Flags().GetString("lang")
 		out, _ := cmd.Flags().GetString("out")
+		compile, _ := cmd.Flags().GetBool("compile")
+		model, _ := cmd.Flags().GetString("model")
 
 		proc := processor.NewWikiProcessor(out)
 
 		if filePath != "" {
-			runBatch(filePath, workers, lang, proc)
+			runBatch(filePath, workers, lang, proc, compile, model)
 		} else {
 			if len(args) < 2 {
 				fmt.Println("Please provide source and id, or use --file")
 				return
 			}
-			RunSingle(args[0], args[1], lang, proc)
+			RunSingle(args[0], args[1], lang, proc, compile, model)
 		}
 	},
 }
 
-func RunSingle(source, id, lang string, proc *processor.WikiProcessor) (string, error) {
+func RunSingle(source, id, lang string, proc *processor.WikiProcessor, compile bool, model string) (string, error) {
 	title, text, err := dispatchFetch(source, id, lang)
 	if err != nil {
 		return "", err
@@ -53,7 +57,8 @@ func RunSingle(source, id, lang string, proc *processor.WikiProcessor) (string, 
 		sourceDir = "github"
 	}
 	if source == "arxiv" {
-		sourceDir = "papers" }
+		sourceDir = "papers"
+	}
 	if source == "hf" {
 		sourceDir = "huggingface"
 	}
@@ -76,6 +81,25 @@ func RunSingle(source, id, lang string, proc *processor.WikiProcessor) (string, 
 		return "", err
 	}
 	fmt.Printf("✅ Saved [%s] to Wiki: %s (Tags: %s)\n", id, fname, strings.Join(tags, ", "))
+
+	// Autonmous Knowledge Compiling
+	if compile {
+		fmt.Printf("🧠 Compiling knowledge links for [%s]...\n", id)
+		ollama := agent.NewOllamaClient(model)
+		compiler, err := agent.NewCompiler(ollama, proc.BaseDir)
+		if err == nil {
+			defer compiler.Close()
+			fullPath := filepath.Join(proc.BaseDir, sourceDir, fname)
+			section, err := compiler.CompileDocument(fullPath, text, tags, summary)
+			if err == nil && section != "" {
+				compiler.UpdateDocument(fullPath, section)
+				fmt.Printf("   🔗 Knowledge graph updated for %s\n", id)
+			}
+		} else {
+			fmt.Printf("   ⚠️  Compiler skipped: %v\n", err)
+		}
+	}
+
 	return text, nil
 }
 
@@ -113,7 +137,7 @@ type job struct {
 	id     string
 }
 
-func runBatch(filePath string, numWorkers int, lang string, proc *processor.WikiProcessor) {
+func runBatch(filePath string, numWorkers int, lang string, proc *processor.WikiProcessor, compile bool, model string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Printf("Error opening file: %v\n", err)
@@ -129,7 +153,7 @@ func runBatch(filePath string, numWorkers int, lang string, proc *processor.Wiki
 		go func(workerID int) {
 			defer wg.Done()
 			for j := range jobs {
-				RunSingle(j.source, j.id, lang, proc)
+				RunSingle(j.source, j.id, lang, proc, compile, model)
 			}
 		}(i)
 	}
@@ -189,5 +213,7 @@ func init() {
 	fetchCmd.Flags().IntP("workers", "w", 5, "Number of concurrent workers")
 	fetchCmd.Flags().String("lang", "ko", "Preferred language")
 	fetchCmd.Flags().String("out", "./wiki", "Output directory")
+	fetchCmd.Flags().Bool("compile", false, "Automatically compile knowledge links after fetch")
+	fetchCmd.Flags().String("model", "llama3", "Ollama model for compilation reasoning")
 	rootCmd.AddCommand(fetchCmd)
 }

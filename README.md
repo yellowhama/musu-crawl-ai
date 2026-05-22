@@ -7,78 +7,59 @@ AI-Ready Knowledge Harvester & Wiki Generator.
 ## 🚀 Features
 
 -   **Multi-Source Harvesters:**
-    -   **YouTube (`yt`):** Captions/transcripts (with Innertube fallback to bypass restrictions).
+    -   **YouTube (`yt`):** Captions/transcripts (with Innertube fallback).
     -   **GitHub (`gh`):** `README.md` and repository metadata.
     -   **Arxiv (`arxiv`):** Research paper metadata and PDF text extraction.
     -   **Hugging Face (`hf`):** Model Cards and metadata.
     -   **General Web (`web`):** Clean article content extraction (Readability).
     -   **Twitter/X (`x`):** Tweet content (via Syndication/OEmbed fallback).
--   **Auto-Wiki & Indexing:**
-    -   Generates Markdown files with YAML Frontmatter.
+    -   **Reddit:** Post and subreddit listing extraction.
+-   **Auto-Wiki & Intelligence:**
+    -   **Wiki Compiler Agent:** Automatically discovers and creates bidirectional links between related documents using local reasoning.
     -   **Auto-Tagging:** Automatically extracts keywords from content.
-    -   **Local Summarization:** Pure Go extractive summarizer (top 3 sentences) for quick context.
-    -   **Local Search Engine:** Built-in high-performance text search across all documents using Bleve.
-    -   **Machine-Readable Index:** Unified `index.json` catalog for RAG integration.
+    -   **Local Summarization:** Pure Go extractive summarizer (top 3 sentences).
+    -   **Local Search Engine:** Built-in text search using Bleve.
 -   **High Performance:**
-    -   **Concurrency:** Worker pool pattern (Goroutines) for massive parallel downloads.
-    -   **Robustness:** Exponential backoff retry logic for all HTTP requests.
-
-## 🛠️ Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/yellowhama/musu-crawl-ai
-cd musu-crawl-ai
-
-# Build the executable
-go build -o musu-crawl
-```
+    -   **Concurrency:** Worker pool pattern (Goroutines).
+    -   **Robustness:** Exponential backoff retry logic.
 
 ## 📖 Usage
 
-### Single Fetch
+### Single Fetch with Auto-Linking
 ```bash
-./musu-crawl fetch yt [VIDEO_ID]
-./musu-crawl fetch gh [OWNER/REPO]
-./musu-crawl fetch arxiv [ARXIV_ID]
-./musu-crawl fetch web [URL]
+./musu-crawl fetch yt [VIDEO_ID] --compile
+```
+
+### Standalone Wiki Compilation
+```bash
+# Analyze all documents and forge knowledge links
+./musu-crawl compile
+```
+
+### Autonomous Research
+```bash
+# Decompose, Discover, Harvest, and Synthesize
+./musu-crawl research "What are the latest AI trends?"
 ```
 
 ### Local Search
 ```bash
-# Search for keywords across the entire harvested knowledge base
 ./musu-crawl search "machine learning"
-```
-
-### Batch Fetch (Parallel)
-Create a `targets.txt` file:
-```text
-yt dQw4w9WgXcQ
-gh spf13/cobra
-web https://go.dev/blog/go1.22
-```
-Run with 10 concurrent workers:
-```bash
-./musu-crawl fetch --file targets.txt --workers 10
 ```
 
 ### Re-indexing
 ```bash
-# Rebuild index.json, README.md, and Search Index
-./musu-crawl index --out ./wiki
+./musu-crawl index
 ```
 
 ## 📂 Directory Structure
 - `/wiki`: The generated knowledge base.
-- `/wiki/index.json`: Centralized metadata catalog for RAG.
-- `/wiki/musu.bleve`: Local search engine database.
-- `/wiki/README.md`: Human-readable master index.
-- `/internal/harvester`: Modular fetcher implementations.
+- `/wiki/index.json`: Machine-readable catalog.
+- `/wiki/musu.bleve`: Search database.
+- `/wiki/README.md`: Human-readable index.
 
 ## 📝 Roadmap
-- [x] Concurrent Batch Processing
-- [x] Robust Retry Logic (Exponential Backoff)
-- [x] Auto-Tagging & Local Summarization
-- [x] Built-in Local Search Engine
+- [x] Wiki Compiler Agent (Autonomous Cross-Linking)
+- [x] Multi-Agent Research Loop
 - [ ] Direct Vector DB Export (Ollama Embedding Integration)
-- [ ] PDF OCR Support for scanned papers
+- [ ] PDF OCR Support

@@ -111,7 +111,7 @@ func (p *WikiProcessor) UpdateIndex() error {
 		link := strings.ReplaceAll(rel, "\\", "/")
 
 		// Parse frontmatter
-		entry, docContent, _ := p.parseFrontmatterWithContent(path, link)
+		entry, docContent, _ := p.ParseFrontmatterWithContent(path, link)
 		if entry != nil {
 			entry.Content = docContent
 			entries = append(entries, *entry)
@@ -140,7 +140,7 @@ func (p *WikiProcessor) UpdateIndex() error {
 	return os.WriteFile(jsonFile, jsonData, 0644)
 }
 
-func (p *WikiProcessor) parseFrontmatterWithContent(path string, relPath string) (*IndexEntry, string, error) {
+func (p *WikiProcessor) ParseFrontmatterWithContent(path string, relPath string) (*IndexEntry, string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, "", err
