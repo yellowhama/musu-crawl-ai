@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/ledongthuc/pdf"
 	"github.com/yellowhama/musu-crawl-ai/internal/utils"
 )
@@ -45,23 +46,55 @@ func (f *ArxivFetcher) Fetch(arxivID string) (string, string, error) {
 		return "", "", fmt.Errorf("paper not found or empty title")
 	}
 
-	// 2. Attempt to fetch and parse PDF (optional but nice)
-	pdfText := ""
-	pdfURL := ""
-	for _, link := range entry.Link {
-		if link.Type == "application/pdf" {
-			pdfURL = link.Href
-			break
+	// 2. High-Quality Content Fetch: Try HTML (ar5iv or official)
+	contentMD := ""
+	contentSource := ""
+
+	// Attempt ar5iv
+	ar5ivURL := fmt.Sprintf("https://ar5iv.org/html/%s", arxivID)
+	htmlBody, status, err := utils.GetWithRetry(ar5ivURL, nil)
+	if err == nil && status == 200 {
+		markdown, mdErr := htmltomarkdown.ConvertString(string(htmlBody))
+		if mdErr == nil {
+			contentMD = markdown
+			contentSource = "ar5iv HTML"
 		}
 	}
 
-	if pdfURL != "" {
-		// Replace http with https if needed
-		pdfURL = strings.Replace(pdfURL, "http://", "https://", 1)
-		pdfText, _ = f.extractPDFText(pdfURL)
+	// Attempt official Arxiv HTML if ar5iv failed
+	if contentMD == "" {
+		officialURL := fmt.Sprintf("https://arxiv.org/html/%s", arxivID)
+		htmlBody, status, err = utils.GetWithRetry(officialURL, nil)
+		if err == nil && status == 200 {
+			markdown, mdErr := htmltomarkdown.ConvertString(string(htmlBody))
+			if mdErr == nil {
+				contentMD = markdown
+				contentSource = "Arxiv HTML"
+			}
+		}
 	}
 
-	// 3. Build Markdown
+	// 3. Fallback: PDF text extraction
+	if contentMD == "" {
+		pdfURL := ""
+		for _, link := range entry.Link {
+			if link.Type == "application/pdf" {
+				pdfURL = link.Href
+				break
+			}
+		}
+
+		if pdfURL != "" {
+			pdfURL = strings.Replace(pdfURL, "http://", "https://", 1)
+			pdfText, pdfErr := f.extractPDFText(pdfURL)
+			if pdfErr == nil && pdfText != "" {
+				contentMD = pdfText
+				contentSource = "PDF (basic extraction)"
+			}
+		}
+	}
+
+	// 4. Build Markdown
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("# %s\n\n", strings.TrimSpace(entry.Title)))
 	sb.WriteString(fmt.Sprintf("**Authors:** %s\n\n", strings.Join(entry.Author, ", ")))
@@ -69,11 +102,11 @@ func (f *ArxivFetcher) Fetch(arxivID string) (string, string, error) {
 	sb.WriteString(strings.TrimSpace(entry.Summary))
 	sb.WriteString("\n\n---\n\n")
 
-	if pdfText != "" {
-		sb.WriteString("## PDF Content Snippet / Full Text\n\n")
-		sb.WriteString(pdfText)
+	if contentMD != "" {
+		sb.WriteString(fmt.Sprintf("## Paper Content (Source: %s)\n\n", contentSource))
+		sb.WriteString(contentMD)
 	} else {
-		sb.WriteString("> *Note: Full PDF text extraction was not available or failed.*\n")
+		sb.WriteString("> *Note: Full paper content extraction was not available or failed.*\n")
 	}
 
 	return entry.Title, sb.String(), nil

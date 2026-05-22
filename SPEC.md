@@ -25,6 +25,10 @@ A high-performance, concurrent knowledge harvester and Wiki generator designed f
 - [x] **Local Summarization:** Extractive NLP algorithm to generate 3-sentence summaries in pure Go.
 - [x] **Local Search:** Integrated **Bleve** search engine for semantic-like keyword queries across the Wiki.
 
+### Phase 9: Advanced Parsing Upgrades (New)
+- [x] **Arxiv Layout Fix:** Added HTML-first fetching (ar5iv/official) to perfectly preserve paper layouts.
+- [x] **Web Robustness:** Added fallback mechanisms and automated Markdown artifact cleaning.
+
 ## 🧐 Qualitative Evaluation (Code Audit)
 
 ### 1. Performance

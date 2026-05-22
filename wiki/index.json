@@ -18,7 +18,15 @@
     "title": "Attention Is All You Need",
     "source": "papers",
     "path": "papers/1706.03762_Attention Is All You Need.md",
-    "date": "2026-05-22"
+    "date": "2026-05-22",
+    "tags": [
+      "attention",
+      "model",
+      "we",
+      "bib",
+      "sequence"
+    ],
+    "summary": "2 Multi-Head Attention ‣ 3. A decomposable attention model. ## Attention Visualizations\n\n!"
   },
   {
     "id": "go.dev_blog_go1.22",
