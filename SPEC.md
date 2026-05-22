@@ -44,6 +44,11 @@ A high-performance, concurrent knowledge harvester and Wiki generator designed f
 - [x] **Recursive Multi-hop Research:** The `research` command now supports recursive loops. If the Analyst identifies missing info, it triggers a new research "hop" to fill the gaps autonomously.
 - [x] **Hybrid Retrieval:** Combined keyword search (Bleve) with semantic search (Vectors) for maximum discovery precision.
 
+### Phase 13: Agent-Native Optimization (New)
+- [x] **Ollama Independence:** Decoupled core logic from Ollama. The tool now functions as a standalone data engine for any external LLM (Gemini, Claude, etc.) if local Ollama is absent.
+- [x] **Agent Orchestration Guide:** Created **`AGENTS.md`** to provide standardized instructions for AI agents on how to manually orchestrate deep research loops using the tool's primitives.
+- [x] **Graceful Degradation:** Enhanced error handling to guide external agents to take over reasoning tasks when local services are unavailable.
+
 ## 🧐 Qualitative Evaluation (Code Audit)
 
 ### 1. Autonomy & Steering

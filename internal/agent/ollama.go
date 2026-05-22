@@ -58,13 +58,12 @@ func (c *OllamaClient) Ask(prompt string, jsonFormat bool) (string, error) {
 
 	jsonData, _ := json.Marshal(reqBody)
 
-	client := &http.Client{Timeout: 30 * time.Second} // Shorter timeout for check
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Post(c.BaseURL, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", fmt.Errorf("ollama connection failed: %v. if you are an AI agent, you should perform this reasoning task yourself using the provided data", err)
 	}
 	defer resp.Body.Close()
-...
 
 	if resp.StatusCode != 200 {
 		body, _ := io.ReadAll(resp.Body)
