@@ -31,16 +31,15 @@ var fetchCmd = &cobra.Command{
 				fmt.Println("Please provide source and id, or use --file")
 				return
 			}
-			runSingle(args[0], args[1], lang, proc)
+			RunSingle(args[0], args[1], lang, proc)
 		}
 	},
 }
 
-func runSingle(source, id, lang string, proc *processor.WikiProcessor) {
+func RunSingle(source, id, lang string, proc *processor.WikiProcessor) (string, error) {
 	title, text, err := dispatchFetch(source, id, lang)
 	if err != nil {
-		fmt.Printf("❌ Error [%s]: %v\n", id, err)
-		return
+		return "", err
 	}
 
 	tags := utils.ExtractKeywords(text, 5)
@@ -74,10 +73,10 @@ func runSingle(source, id, lang string, proc *processor.WikiProcessor) {
 
 	fname, err := proc.SaveToWiki(sourceDir, safeID, title, text, tags, summary)
 	if err != nil {
-		fmt.Printf("❌ Error saving [%s]: %v\n", id, err)
-		return
+		return "", err
 	}
 	fmt.Printf("✅ Saved [%s] to Wiki: %s (Tags: %s)\n", id, fname, strings.Join(tags, ", "))
+	return text, nil
 }
 
 func dispatchFetch(source, id, lang string) (string, string, error) {
@@ -130,7 +129,7 @@ func runBatch(filePath string, numWorkers int, lang string, proc *processor.Wiki
 		go func(workerID int) {
 			defer wg.Done()
 			for j := range jobs {
-				runSingle(j.source, j.id, lang, proc)
+				RunSingle(j.source, j.id, lang, proc)
 			}
 		}(i)
 	}
