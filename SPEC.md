@@ -29,25 +29,26 @@ A high-performance, concurrent knowledge harvester and Wiki generator designed f
 - [x] **Arxiv Layout Fix:** Added HTML-first fetching (ar5iv/official) to perfectly preserve paper layouts.
 - [x] **Web Robustness:** Added fallback mechanisms and automated Markdown artifact cleaning.
 
+### Phase 10: Autonomous Research Orchestrator (New)
+- [x] **Local LLM Integration:** Integrated **Ollama** (Planner & Analyst agents) for zero-cost local reasoning.
+- [x] **Discovery Engine:** Implemented **Searcher agent** (DuckDuckGo) to autonomously find relevant URLs.
+- [x] **Recursive Research Loop:** Added the `research` command which orchestrates the entire flow: Question -> Plan -> Discover -> Harvest -> Synthesize.
+
 ## 🧐 Qualitative Evaluation (Code Audit)
 
-### 1. Performance
-- **Goroutine Efficiency:** The worker pool effectively saturates bandwidth without overwhelming the OS. Parallelism scales linearly with `--workers`.
-- **Search Speed:** Bleve provides sub-millisecond search results for thousands of documents.
+### 1. Autonomy & Steering
+- **Agentic Loop:** The new `research` command allows the tool to operate as a proactive researcher rather than a reactive harvester.
+- **YOLO Mode Readiness:** Policy and settings are optimized for zero-confirmation autonomous driving.
 
-### 2. Resilience
-- **Bypass Logic:** YouTube's Innertube fallback and Twitter's OEmbed fallback are robust against common scraping blocks.
-- **Error Handling:** Centralized `utils/http.go` ensures all network calls are retried gracefully.
+### 2. Architectural Integrity
+- **Unified Pipeline:** The export of `RunSingle` ensures that both manual fetches and autonomous research use the same high-quality processing (tagging, summarization, sanitization).
+- **Modularity:** Agents in `internal/agent` are cleanly separated from the harvesting logic.
 
-### 3. AI-Readiness
-- **Information Density:** High. Readability and PDF parsing ensure LLMs only see relevant text.
-- **Discoverability:** High. `index.json` and `musu.bleve` allow agents to navigate the knowledge base without brute-force file reads.
+### 3. Intelligence Quality
+- **Context Management:** The Analyst agent uses a sliding window (8000 chars) to manage local LLM context efficiently.
+- **Search Precision:** DuckDuckGo results are filtered and sanitized before harvesting.
 
-### 4. Code Quality
-- **Modularity:** Harvesters are decoupled via a standard interface, making it easy to add new sources.
-- **Cleanliness:** Follows `go fmt` standards. All dependencies are managed in `go.mod`.
-
-## 🚀 Next Steps (Phase 8+)
-1. **Vector Embeddings (Optional):** Integrate with a local Ollama instance for true vector-based semantic search.
-2. **OCR Integration:** Add `tesseract` or similar for scanned PDF documents.
-3. **Web UI:** Build a simple Go-based web dashboard to browse the Wiki.
+## 🚀 Next Steps (Phase 11+)
+1. **Semantic Vector Search:** Move from keyword-based Bleve search to true Vector Embeddings using Ollama's embedding models.
+2. **Recursive Depth:** Enhance the Analyst to automatically trigger "sub-research" tasks for identified gaps.
+3. **Structured Export:** Add a command to export the entire Wiki into a single JSONL file for LLM fine-tuning.
