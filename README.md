@@ -15,51 +15,64 @@ AI-Ready Knowledge Harvester & Wiki Generator.
     -   **Twitter/X (`x`):** Tweet content (via Syndication/OEmbed fallback).
     -   **Reddit:** Post and subreddit listing extraction.
 -   **Auto-Wiki & Intelligence:**
+    -   **Recursive Research Loop:** Fully autonomous multi-hop research. Decomposes questions, discovers sources, and repeats the process if information gaps are found.
     -   **Wiki Compiler Agent:** Automatically discovers and creates bidirectional links between related documents using local reasoning.
+    -   **Semantic Vector Search:** Built-in meaning-based search using local Ollama embeddings (Hybrid search with Bleve keywords).
     -   **Auto-Tagging:** Automatically extracts keywords from content.
     -   **Local Summarization:** Pure Go extractive summarizer (top 3 sentences).
-    -   **Local Search Engine:** Built-in text search using Bleve.
 -   **High Performance:**
     -   **Concurrency:** Worker pool pattern (Goroutines).
     -   **Robustness:** Exponential backoff retry logic.
 
+## 🛠️ Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yellowhama/musu-crawl-ai
+cd musu-crawl-ai
+
+# Build the executable
+go build -o musu-crawl
+```
+
 ## 📖 Usage
+
+### Autonomous Deep Research (Recursive)
+```bash
+# Decompose, Discover, Harvest, and recursively fill information gaps
+./musu-crawl research "Compare the performance of Go 1.22 vs 1.21" --depth 2
+```
+
+### Semantic & Keyword Search
+```bash
+# Meaning-based search (Semantic Vector)
+./musu-crawl search "machine learning concepts" --semantic
+
+# Keyword-based search (Bleve)
+./musu-crawl search "golang concurrency"
+```
 
 ### Single Fetch with Auto-Linking
 ```bash
 ./musu-crawl fetch yt [VIDEO_ID] --compile
 ```
 
-### Standalone Wiki Compilation
+### Re-indexing (with Embeddings)
 ```bash
-# Analyze all documents and forge knowledge links
-./musu-crawl compile
-```
-
-### Autonomous Research
-```bash
-# Decompose, Discover, Harvest, and Synthesize
-./musu-crawl research "What are the latest AI trends?"
-```
-
-### Local Search
-```bash
-./musu-crawl search "machine learning"
-```
-
-### Re-indexing
-```bash
-./musu-crawl index
+# Build keyword index and generate vector embeddings
+./musu-crawl index --semantic
 ```
 
 ## 📂 Directory Structure
 - `/wiki`: The generated knowledge base.
 - `/wiki/index.json`: Machine-readable catalog.
-- `/wiki/musu.bleve`: Search database.
-- `/wiki/README.md`: Human-readable index.
+- `/wiki/musu.bleve`: Keyword search database.
+- `/wiki/musu.vectors.json`: Semantic vector store.
+- `/wiki/README.md`: Human-readable master index.
 
 ## 📝 Roadmap
+- [x] Semantic Vector Search (Local Ollama)
+- [x] Recursive Multi-hop Research
 - [x] Wiki Compiler Agent (Autonomous Cross-Linking)
-- [x] Multi-Agent Research Loop
-- [ ] Direct Vector DB Export (Ollama Embedding Integration)
+- [ ] Direct Vector DB Export (Pinecone/Weaviate integration)
 - [ ] PDF OCR Support

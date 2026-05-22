@@ -75,9 +75,18 @@ func (p *WikiProcessor) SaveToWiki(source, id, title, content string, tags []str
 }
 
 func (p *WikiProcessor) UpdateIndex() error {
+	return p.UpdateIndexWithEmbedder(nil)
+}
+
+func (p *WikiProcessor) UpdateIndexWithEmbedder(embedder func(string) ([]float64, error)) error {
 	indexFile := filepath.Join(p.BaseDir, "README.md")
 	jsonFile := filepath.Join(p.BaseDir, "index.json")
 	blevePath := filepath.Join(p.BaseDir, "musu.bleve")
+	vectorFile := filepath.Join(p.BaseDir, "musu.vectors.json")
+
+	// Vector Store setup
+	vstore := NewVectorStore()
+	vstore.Load(vectorFile)
 
 	// Bleve setup
 	var index bleve.Index
@@ -100,7 +109,7 @@ func (p *WikiProcessor) UpdateIndex() error {
 	var entries []IndexEntry
 
 	err = filepath.Walk(p.BaseDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() || filepath.Base(path) == "README.md" || filepath.Base(path) == "index.json" || strings.HasSuffix(path, ".bleve") {
+		if err != nil || info.IsDir() || filepath.Base(path) == "README.md" || filepath.Base(path) == "index.json" || strings.HasSuffix(path, ".bleve") || filepath.Base(path) == "musu.vectors.json" {
 			return nil
 		}
 		if filepath.Ext(path) != ".md" {
@@ -118,6 +127,24 @@ func (p *WikiProcessor) UpdateIndex() error {
 
 			// Index to Bleve
 			index.Index(entry.ID, entry)
+
+			// Handle Vectors
+			if embedder != nil {
+				if _, exists := vstore.Embeddings[entry.ID]; !exists {
+					fmt.Printf("🧠 Generating embedding for %s...\n", entry.ID)
+					// Embed summary or title
+					textToEmbed := entry.Summary
+					if textToEmbed == "" {
+						textToEmbed = entry.Title
+					}
+					vec, err := embedder(textToEmbed)
+					if err == nil {
+						vstore.Embeddings[entry.ID] = vec
+					} else {
+						fmt.Printf("   ⚠️  Embedding failed: %v\n", err)
+					}
+				}
+			}
 
 			sb.WriteString(fmt.Sprintf("* [%s](%s) (%s)\n", entry.Title, entry.Path, entry.Source))
 		} else {
@@ -137,7 +164,10 @@ func (p *WikiProcessor) UpdateIndex() error {
 
 	// Save index.json
 	jsonData, _ := json.MarshalIndent(entries, "", "  ")
-	return os.WriteFile(jsonFile, jsonData, 0644)
+	os.WriteFile(jsonFile, jsonData, 0644)
+
+	// Save vectors
+	return vstore.Save(vectorFile)
 }
 
 func (p *WikiProcessor) ParseFrontmatterWithContent(path string, relPath string) (*IndexEntry, string, error) {

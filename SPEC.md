@@ -39,6 +39,11 @@ A high-performance, concurrent knowledge harvester and Wiki generator designed f
 - [x] **Auto-Linking:** Automatically generates `[[Wiki-style]]` cross-links and relationship explanations using local Ollama reasoning.
 - [x] **LLM Wiki Pattern:** Transitioned from a simple harvester to a persistent, interlinked knowledge system.
 
+### Phase 12: Semantic Intelligence & Recursive Research (New)
+- [x] **Semantic Vector Search:** Implemented local vector embedding generation and cosine similarity search using Ollama's embedding models.
+- [x] **Recursive Multi-hop Research:** The `research` command now supports recursive loops. If the Analyst identifies missing info, it triggers a new research "hop" to fill the gaps autonomously.
+- [x] **Hybrid Retrieval:** Combined keyword search (Bleve) with semantic search (Vectors) for maximum discovery precision.
+
 ## 🧐 Qualitative Evaluation (Code Audit)
 
 ### 1. Autonomy & Steering

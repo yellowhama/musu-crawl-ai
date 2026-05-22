@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/yellowhama/musu-crawl-ai/internal/agent"
@@ -10,13 +12,14 @@ import (
 
 var researchCmd = &cobra.Command{
 	Use:   "research [question]",
-	Short: "Perform autonomous multi-agent research",
+	Short: "Perform autonomous recursive multi-agent research",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		question := args[0]
 		model, _ := cmd.Flags().GetString("model")
 		limit, _ := cmd.Flags().GetInt("limit")
 		out, _ := cmd.Flags().GetString("out")
+		maxDepth, _ := cmd.Flags().GetInt("depth")
 
 		ollama := agent.NewOllamaClient(model)
 		planner := &agent.Planner{Client: ollama}
@@ -24,69 +27,103 @@ var researchCmd = &cobra.Command{
 		analyst := &agent.Analyst{Client: ollama}
 		proc := processor.NewWikiProcessor(out)
 
-		fmt.Printf("🚀 Starting research for: %q\n", question)
+		fmt.Printf("🚀 Starting autonomous research for: %q\n", question)
 
-		// 1. Plan
-		fmt.Println("🧠 Planning search strategy...")
-		plan, err := planner.CreatePlan(question)
-		if err != nil {
-			fmt.Printf("❌ Planning failed: %v\n", err)
-			return
-		}
-		fmt.Printf("📋 Plan: %s\n", plan.Reason)
+		seenURLs := make(map[string]bool)
+		currentGoal := question
+		var allContents []string
 
-		// 2. Discover
-		fmt.Println("🌐 Discovering sources...")
-		urls := searcher.DiscoverURLs(plan.Queries, limit)
-		if len(urls) == 0 {
-			fmt.Println("❌ No sources discovered.")
-			return
-		}
-		fmt.Printf("🔗 Discovered %d unique sources.\n", len(urls))
+		for depth := 1; depth <= maxDepth; depth++ {
+			fmt.Printf("\n--- 📍 Research Depth %d/%d ---\n", depth, maxDepth)
+			fmt.Printf("🎯 Current Target: %s\n", currentGoal)
 
-		// 3. Harvest & Process (Using unified RunSingle)
-		fmt.Println("⛏️  Harvesting and processing content...")
-		var contents []string
-		for _, url := range urls {
-			fmt.Printf("   Processing: %s...\n", url)
-			source := autoDetectSource(url)
-			if source == "" {
-				source = "web"
-			}
-			
-			text, err := RunSingle(source, url, "en", proc, false, "")
+			// 1. Plan
+			fmt.Println("🧠 Planning search strategy...")
+			plan, err := planner.CreatePlan(currentGoal)
 			if err != nil {
-				fmt.Printf("   ⚠️  Skip [%s]: %v\n", url, err)
-				continue
+				fmt.Printf("❌ Planning failed: %v\n", err)
+				break
 			}
-			contents = append(contents, text)
-		}
+			fmt.Printf("📋 Strategy: %s\n", plan.Reason)
 
-		if len(contents) == 0 {
-			fmt.Println("❌ No content could be harvested.")
-			return
-		}
+			// 2. Discover
+			fmt.Println("🌐 Discovering sources...")
+			urls := searcher.DiscoverURLs(plan.Queries, limit)
+			
+			var newURLs []string
+			for _, u := range urls {
+				if !seenURLs[u] {
+					seenURLs[u] = true
+					newURLs = append(newURLs, u)
+				}
+			}
 
-		// 4. Analyze
-		fmt.Println("📊 Analyzing and synthesizing results...")
-		result, err := analyst.Synthesize(question, contents)
-		if err != nil {
-			fmt.Printf("❌ Analysis failed: %v\n", err)
-			return
-		}
+			if len(newURLs) == 0 {
+				fmt.Println("ℹ️  No new sources discovered in this iteration.")
+				if depth == 1 { break }
+				// If we have some content from previous rounds, we might still want to analyze
+			} else {
+				fmt.Printf("🔗 Found %d new sources.\n", len(newURLs))
 
-		fmt.Println("\n--- FINAL RESEARCH REPORT ---")
-		fmt.Println(result)
+				// 3. Harvest & Process
+				fmt.Println("⛏️  Harvesting and processing content...")
+				for _, url := range newURLs {
+					fmt.Printf("   Processing: %s...\n", url)
+					source := autoDetectSource(url)
+					if source == "" { source = "web" }
+					
+					text, err := RunSingle(source, url, "en", proc, false, "")
+					if err != nil {
+						fmt.Printf("   ⚠️  Skip [%s]: %v\n", url, err)
+						continue
+					}
+					allContents = append(allContents, text)
+				}
+			}
+
+			if len(allContents) == 0 {
+				fmt.Println("❌ No content available to analyze.")
+				break
+			}
+
+			// 4. Analyze
+			fmt.Println("📊 Analyzing accumulated knowledge...")
+			report, err := analyst.Synthesize(question, allContents)
+			if err != nil {
+				fmt.Printf("❌ Analysis failed: %v\n", err)
+				break
+			}
+
+			fmt.Println("\n--- CURRENT FINDINGS ---")
+			fmt.Println(report)
+
+			// Check for missing info
+			missingMatch := regexp.MustCompile(`(?s)MISSING:\s*(.*)`).FindStringSubmatch(report)
+			if len(missingMatch) >= 2 {
+				missingInfo := strings.TrimSpace(missingMatch[1])
+				lowerMissing := strings.ToLower(missingInfo)
+				if lowerMissing == "none" || lowerMissing == "none." || len(missingInfo) < 5 {
+					fmt.Println("\n✨ Research goal fully satisfied. Stopping.")
+					break
+				}
+				// Recursive update
+				currentGoal = "Additional research needed on: " + missingInfo
+				fmt.Printf("\n🔁 Gaps identified. Initiating next hop for: %s\n", missingInfo)
+			} else {
+				break
+			}
+		}
 		
 		// Final Index
 		proc.UpdateIndex()
-		fmt.Println("\n✅ Research completed and indexed.")
+		fmt.Println("\n✅ Autonomous research completed and indexed.")
 	},
 }
 
 func init() {
 	researchCmd.Flags().String("model", "llama3", "Local Ollama model to use")
-	researchCmd.Flags().Int("limit", 5, "Maximum number of sources to fetch")
+	researchCmd.Flags().Int("limit", 5, "Maximum number of sources to fetch per hop")
+	researchCmd.Flags().Int("depth", 2, "Maximum recursive research depth")
 	researchCmd.Flags().String("out", "./wiki", "Output directory")
 	rootCmd.AddCommand(researchCmd)
 }
