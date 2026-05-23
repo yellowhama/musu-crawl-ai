@@ -1,42 +1,36 @@
-# Master Plan: musu-crawl-ai Development (FINAL STATUS: V0.2.0 COMPLETED)
+# Master Plan: musu-crawl-ai Development (STATUS: V0.3.0 AI BRAIN RELEASE)
 
 ## 🎯 Project Goal
-A high-performance, autonomous knowledge harvester and LLM Wiki generator. Designed to serve as the "High-Bandwidth Data Supply Chain" for AI Researcher Agents, operating entirely locally with hybrid search and self-organizing capabilities.
+A high-performance, autonomous knowledge harvester and LLM Wiki generator. In v0.3.0, it transforms into a "Multi-Project AI Brain" with interactive graph visualization and project-scoped knowledge silos.
 
 ## ✅ Completed Milestones
 
-### Phase 1-4: Multi-Source Harvesters
-- [x] **Universal Fetcher:** YouTube (transcript + metadata), GitHub (README + metadata), Arxiv (HTML-first layout preservation), Reddit, Hugging Face, and General Web (clean readability).
-- [x] **Social Resilience:** Bypasses for YouTube PO-Token/403 and Twitter/X 404 via fallback endpoints.
+### Phase 1-9: The Harvester Engine
+- [x] **Universal Fetchers:** YouTube, GitHub, Arxiv (Layout preserved), Reddit, HF, Web.
+- [x] **Robustness:** Exponential backoff, fallback bypasses for gated content.
 
-### Phase 5-10: Intelligence & Concurrency
-- [x] **Massive Concurrency:** Worker pool pattern for high-throughput batch fetching.
-- [x] **Local Intelligence:** Automatic TF-IDF tagging and extractive 3-sentence summarization (Zero-cost).
-- [x] **Agentic Loop:** Multi-agent research orchestrator (Planner -> Searcher -> Harvester -> Analyst).
+### Phase 10-14: Intelligence & Distribution
+- [x] **Recursive Research:** Autonomous multi-agent loops (Planner -> Searcher -> Analyst).
+- [x] **LLM Wiki Pattern:** Local summarization, auto-tagging, and cross-linking (Compiler agent).
+- [x] **Distribution:** `init` for setup, `update` for binaries, CI/CD for cross-platform releases.
 
-### Phase 11-14: Knowledge Graph & Distribution
-- [x] **Wiki Compiler:** Autonomous cross-linking and relationship generation between documents.
-- [x] **Hybrid Search:** Integrated keyword (Bleve) and semantic vector (Ollama) search engines.
-- [x] **Standalone UX:** `init` for easy setup, `update` for self-updating binaries.
-- [x] **CI/CD:** Automated cross-platform builds (Win/Linux/Mac) via GitHub Actions.
+### Phase 15-17: AI Brain & Galaxy (v0.3.0 New)
+- [x] **Multi-Project Scoping:** All knowledge is now scoped by `--project` (default: 'all' or 'default'). Files are organized in `wiki/projects/{project_name}/`.
+- [x] **Interactive Knowledge Galaxy:** D3.js based dashboard visualizing documents as a connected stellar network.
+- [x] **Project-Aware Search:** Hybrid search (Bleve + Vectors) can now be filtered by project.
+- [x] **Branded UI:** Complete visual overhaul with official musu colors (#ffa602, #432c1c).
 
-## 🧐 Final Qualitative Evaluation
+## 🧐 Qualitative Evaluation (v0.3.0)
 
-### 1. Robustness & Reliability
-- **Retry Logic:** Centralized HTTP utility with exponential backoff makes the tool extremely resilient to transient network errors.
-- **Graceful Degradation:** The tool is "Agent-Native"—it detects if local LLM services (Ollama) are missing and provides clear instructions for the driving agent to take over reasoning tasks.
+### 1. Multi-Project Maturity
+- **Siloing:** Knowledge is no longer a flat list. High-stakes research can be isolated into specific projects, preventing context leakage between unrelated tasks.
+- **Unified Discovery:** While projects are scoped, the global `index.json` still allows the agent to discover cross-project connections in the Knowledge Galaxy.
 
-### 2. Information Quality
-- **High Signal-to-Noise:** The combination of Arxiv HTML parsing and Web Readability ensures that 95% of the fetched content is meaningful text, saving valuable LLM context window tokens.
-- **Interconnectedness:** The Compiler Agent transforms isolated files into a compounding knowledge base, significantly improving the "contextual memory" of any agent using the Wiki.
+### 2. Visualization & Insights
+- **Stellar Network:** The D3.js galaxy view provides instant intuition about knowledge density and clusters.
+- **Traceability:** The new dashboard allows users to click through the agent's discoveries with Obsidian-like fluidity.
 
-### 3. Distribution & UX
-- **Zero-Dependency:** Once built, the binary is entirely standalone. No Go or Python runtime is required for the end-user.
-- **Maintenance:** The `self-update` feature brings the tool closer to professional commercial software standards.
-
-## 🏁 Final Audit Verdict
-The project has reached **Stable Release v0.2.0**. It is feature-complete according to the original and expanded goals. The code is idiomatic, well-documented, and ready for autonomous deployment by AI researchers.
-
----
-**Build Date:** 2026-05-23
-**Status:** 🚀 PRODUCTION READY
+## 🚀 Next Steps (Future)
+1. **Agent Web Terminal:** Real-time log streaming directly to the dashboard via Websockets.
+2. **Local Embedding Reranker:** Improve hybrid search precision with a local Cross-Encoder.
+3. **Image/OCR Harvester:** Extend fetchers to handle screenshots and scanned diagrams within papers.

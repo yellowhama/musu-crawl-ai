@@ -20,14 +20,15 @@ var researchCmd = &cobra.Command{
 		limit, _ := cmd.Flags().GetInt("limit")
 		out, _ := cmd.Flags().GetString("out")
 		maxDepth, _ := cmd.Flags().GetInt("depth")
+		project, _ := cmd.Flags().GetString("project")
 
 		ollama := agent.NewOllamaClient(model)
 		planner := &agent.Planner{Client: ollama}
 		searcher := &agent.Searcher{}
 		analyst := &agent.Analyst{Client: ollama}
-		proc := processor.NewWikiProcessor(out)
+		proc := processor.NewWikiProcessor(out, project)
 
-		fmt.Printf("🚀 Starting autonomous research for: %q\n", question)
+		fmt.Printf("🚀 Starting autonomous research for: %q (Project: %s)\n", question, project)
 
 		seenURLs := make(map[string]bool)
 		currentGoal := question
@@ -63,7 +64,6 @@ var researchCmd = &cobra.Command{
 				if depth == 1 {
 					break
 				}
-				// If we have some content from previous rounds, we might still want to analyze
 			} else {
 				fmt.Printf("🔗 Found %d new sources.\n", len(newURLs))
 
@@ -129,5 +129,6 @@ func init() {
 	researchCmd.Flags().Int("limit", 5, "Maximum number of sources to fetch per hop")
 	researchCmd.Flags().Int("depth", 2, "Maximum recursive research depth")
 	researchCmd.Flags().String("out", "./wiki", "Output directory")
+	researchCmd.Flags().StringP("project", "p", "default", "Project name to scope the research")
 	rootCmd.AddCommand(researchCmd)
 }

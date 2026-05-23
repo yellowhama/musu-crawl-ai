@@ -25,8 +25,9 @@ var fetchCmd = &cobra.Command{
 		out, _ := cmd.Flags().GetString("out")
 		compile, _ := cmd.Flags().GetBool("compile")
 		model, _ := cmd.Flags().GetString("model")
+		project, _ := cmd.Flags().GetString("project")
 
-		proc := processor.NewWikiProcessor(out)
+		proc := processor.NewWikiProcessor(out, project)
 
 		if filePath != "" {
 			runBatch(filePath, workers, lang, proc, compile, model)
@@ -80,7 +81,7 @@ func RunSingle(source, id, lang string, proc *processor.WikiProcessor, compile b
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("✅ Saved [%s] to Wiki: %s (Tags: %s)\n", id, fname, strings.Join(tags, ", "))
+	fmt.Printf("✅ Saved [%s] to Wiki project '%s': %s (Tags: %s)\n", id, proc.Project, fname, strings.Join(tags, ", "))
 
 	// Autonmous Knowledge Compiling
 	if compile {
@@ -89,7 +90,7 @@ func RunSingle(source, id, lang string, proc *processor.WikiProcessor, compile b
 		compiler, err := agent.NewCompiler(ollama, proc.BaseDir)
 		if err == nil {
 			defer compiler.Close()
-			fullPath := filepath.Join(proc.BaseDir, sourceDir, fname)
+			fullPath := filepath.Join(proc.BaseDir, "projects", proc.Project, sourceDir, fname)
 			section, err := compiler.CompileDocument(fullPath, text, tags, summary)
 			if err == nil && section != "" {
 				compiler.UpdateDocument(fullPath, section)
@@ -215,5 +216,6 @@ func init() {
 	fetchCmd.Flags().String("out", "./wiki", "Output directory")
 	fetchCmd.Flags().Bool("compile", false, "Automatically compile knowledge links after fetch")
 	fetchCmd.Flags().String("model", "llama3", "Ollama model for compilation reasoning")
+	fetchCmd.Flags().StringP("project", "p", "default", "Project name to scope the knowledge")
 	rootCmd.AddCommand(fetchCmd)
 }

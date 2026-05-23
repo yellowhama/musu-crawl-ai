@@ -15,12 +15,14 @@ import (
 
 type WikiProcessor struct {
 	BaseDir string
+	Project string
 }
 
 type IndexEntry struct {
 	ID      string   `json:"id"`
 	Title   string   `json:"title"`
 	Source  string   `json:"source"`
+	Project string   `json:"project"`
 	Path    string   `json:"path"`
 	Date    string   `json:"date"`
 	Tags    []string `json:"tags,omitempty"`
@@ -28,12 +30,16 @@ type IndexEntry struct {
 	Content string   `json:"-"` // Not in JSON but indexed in Bleve
 }
 
-func NewWikiProcessor(baseDir string) *WikiProcessor {
-	return &WikiProcessor{BaseDir: baseDir}
+func NewWikiProcessor(baseDir string, project string) *WikiProcessor {
+	if project == "" {
+		project = "default"
+	}
+	return &WikiProcessor{BaseDir: baseDir, Project: project}
 }
 
 func (p *WikiProcessor) SaveToWiki(source, id, title, content string, tags []string, summary string) (string, error) {
-	dir := filepath.Join(p.BaseDir, source)
+	// New path structure: wiki/projects/{project}/{source}/{file}
+	dir := filepath.Join(p.BaseDir, "projects", p.Project, source)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", err
 	}
@@ -50,6 +56,7 @@ func (p *WikiProcessor) SaveToWiki(source, id, title, content string, tags []str
 	sb.WriteString("---\n")
 	sb.WriteString(fmt.Sprintf("title: %q\n", title))
 	sb.WriteString(fmt.Sprintf("source: %s\n", source))
+	sb.WriteString(fmt.Sprintf("project: %s\n", p.Project))
 	sb.WriteString(fmt.Sprintf("id: %s\n", id))
 	sb.WriteString(fmt.Sprintf("date: %s\n", time.Now().Format("2006-01-02")))
 	if len(tags) > 0 {
@@ -79,8 +86,8 @@ func (p *WikiProcessor) UpdateIndex() error {
 }
 
 func (p *WikiProcessor) UpdateIndexWithEmbedder(embedder func(string) ([]float64, error)) error {
-	indexFile := filepath.Join(p.BaseDir, "README.md")
-	jsonFile := filepath.Join(p.BaseDir, "index.json")
+	readmeFile := filepath.Join(p.BaseDir, "README.md")
+	indexFile := filepath.Join(p.BaseDir, "index.json")
 	blevePath := filepath.Join(p.BaseDir, "musu.bleve")
 	vectorFile := filepath.Join(p.BaseDir, "musu.vectors.json")
 
@@ -107,6 +114,12 @@ func (p *WikiProcessor) UpdateIndexWithEmbedder(embedder func(string) ([]float64
 	sb.WriteString("Automated knowledge repository.\n\n")
 
 	var entries []IndexEntry
+
+	// Search in wiki/projects/
+	projectsDir := filepath.Join(p.BaseDir, "projects")
+	if _, err := os.Stat(projectsDir); os.IsNotExist(err) {
+		os.MkdirAll(projectsDir, 0755)
+	}
 
 	err = filepath.Walk(p.BaseDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() || filepath.Base(path) == "README.md" || filepath.Base(path) == "index.json" || strings.HasSuffix(path, ".bleve") || filepath.Base(path) == "musu.vectors.json" {
@@ -146,7 +159,7 @@ func (p *WikiProcessor) UpdateIndexWithEmbedder(embedder func(string) ([]float64
 				}
 			}
 
-			sb.WriteString(fmt.Sprintf("* [%s](%s) (%s)\n", entry.Title, entry.Path, entry.Source))
+			sb.WriteString(fmt.Sprintf("* [%s](%s) [%s] (%s)\n", entry.Title, entry.Path, entry.Project, entry.Source))
 		} else {
 			name := strings.TrimSuffix(filepath.Base(path), ".md")
 			sb.WriteString(fmt.Sprintf("* [%s](%s)\n", name, link))
@@ -160,11 +173,11 @@ func (p *WikiProcessor) UpdateIndexWithEmbedder(embedder func(string) ([]float64
 	}
 
 	// Save README.md
-	os.WriteFile(indexFile, []byte(sb.String()), 0644)
+	os.WriteFile(readmeFile, []byte(sb.String()), 0644)
 
 	// Save index.json
 	jsonData, _ := json.MarshalIndent(entries, "", "  ")
-	os.WriteFile(jsonFile, jsonData, 0644)
+	return os.WriteFile(indexFile, jsonData, 0644)
 
 	// Save vectors
 	return vstore.Save(vectorFile)
@@ -192,6 +205,7 @@ func (p *WikiProcessor) ParseFrontmatterWithContent(path string, relPath string)
 	var meta struct {
 		Title   string   `yaml:"title"`
 		Source  string   `yaml:"source"`
+		Project string   `yaml:"project"`
 		ID      string   `yaml:"id"`
 		Date    string   `yaml:"date"`
 		Tags    []string `yaml:"tags"`
@@ -202,10 +216,15 @@ func (p *WikiProcessor) ParseFrontmatterWithContent(path string, relPath string)
 		return nil, "", err
 	}
 
+	if meta.Project == "" {
+		meta.Project = "default"
+	}
+
 	return &IndexEntry{
 		ID:      meta.ID,
 		Title:   meta.Title,
 		Source:  meta.Source,
+		Project: meta.Project,
 		Path:    relPath,
 		Date:    meta.Date,
 		Tags:    meta.Tags,

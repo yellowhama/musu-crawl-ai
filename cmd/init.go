@@ -21,13 +21,15 @@ var initCmd = &cobra.Command{
 		// 1. Create directory structure
 		dirs := []string{
 			out,
-			filepath.Join(out, "youtube"),
-			filepath.Join(out, "github"),
-			filepath.Join(out, "papers"),
-			filepath.Join(out, "web"),
-			filepath.Join(out, "twitter"),
-			filepath.Join(out, "huggingface"),
-			filepath.Join(out, "reddit"),
+			filepath.Join(out, "projects"),
+			filepath.Join(out, "projects", "default"),
+			filepath.Join(out, "projects", "default", "youtube"),
+			filepath.Join(out, "projects", "default", "github"),
+			filepath.Join(out, "projects", "default", "papers"),
+			filepath.Join(out, "projects", "default", "web"),
+			filepath.Join(out, "projects", "default", "twitter"),
+			filepath.Join(out, "projects", "default", "huggingface"),
+			filepath.Join(out, "projects", "default", "reddit"),
 		}
 
 		for _, d := range dirs {

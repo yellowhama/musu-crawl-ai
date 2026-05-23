@@ -3,6 +3,7 @@
     "id": "spf13_cobra",
     "title": "spf13/cobra",
     "source": "github",
+    "project": "default",
     "path": "github/spf13_cobra_spf13_cobra.md",
     "date": "2026-05-22"
   },
@@ -10,6 +11,7 @@
     "id": "tiiuae_falcon-7b",
     "title": "tiiuae/falcon-7b",
     "source": "huggingface",
+    "project": "default",
     "path": "huggingface/tiiuae_falcon-7b_tiiuae_falcon-7b.md",
     "date": "2026-05-22"
   },
@@ -17,6 +19,7 @@
     "id": "1706.03762",
     "title": "Attention Is All You Need",
     "source": "papers",
+    "project": "default",
     "path": "papers/1706.03762_Attention Is All You Need.md",
     "date": "2026-05-22",
     "tags": [
@@ -29,9 +32,25 @@
     "summary": "2 Multi-Head Attention ‣ 3. A decomposable attention model. ## Attention Visualizations\n\n!"
   },
   {
+    "id": "dQw4w9WgXcQ",
+    "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
+    "source": "youtube",
+    "project": "test-brain",
+    "path": "projects/test-brain/youtube/dQw4w9WgXcQ_Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster).md",
+    "date": "2026-05-24",
+    "tags": [
+      "gonna",
+      "never",
+      "give",
+      "up",
+      "tell"
+    ]
+  },
+  {
     "id": "go.dev_blog_go1.22",
     "title": "Go 1.22 is released! - The Go Programming Language",
     "source": "web",
+    "project": "default",
     "path": "web/go.dev_blog_go1.22_Go 1.22 is released! - The Go Programming Language.md",
     "date": "2026-05-22"
   },
@@ -39,6 +58,7 @@
     "id": "M7lc1UVf-VE",
     "title": "YouTube Developers Live: Embedded Web Player Customization",
     "source": "youtube",
+    "project": "default",
     "path": "youtube/M7lc1UVf-VE_YouTube Developers Live_ Embedded Web Player Customization.md",
     "date": "2026-05-22"
   },
@@ -46,6 +66,7 @@
     "id": "dQw4w9WgXcQ",
     "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
     "source": "youtube",
+    "project": "default",
     "path": "youtube/dQw4w9WgXcQ_Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster).md",
     "date": "2026-05-22",
     "tags": [

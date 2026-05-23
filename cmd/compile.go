@@ -18,6 +18,7 @@ var compileCmd = &cobra.Command{
 		out, _ := cmd.Flags().GetString("out")
 		model, _ := cmd.Flags().GetString("model")
 		force, _ := cmd.Flags().GetBool("force")
+		project, _ := cmd.Flags().GetString("project")
 
 		ollama := agent.NewOllamaClient(model)
 		compiler, err := agent.NewCompiler(ollama, out)
@@ -27,16 +28,21 @@ var compileCmd = &cobra.Command{
 		}
 		defer compiler.Close()
 
-		proc := processor.NewWikiProcessor(out)
+		proc := processor.NewWikiProcessor(out, project)
 
 		if len(args) > 0 {
 			// Compile specific file
 			path := args[0]
 			runCompileForFile(compiler, proc, path, force)
 		} else {
-			// Scan entire wiki
-			fmt.Printf("📂 Compiling entire wiki at %s...\n", out)
-			err := filepath.Walk(out, func(path string, info os.FileInfo, err error) error {
+			// Scan specific project or entire wiki
+			targetDir := out
+			if project != "" && project != "all" {
+				targetDir = filepath.Join(out, "projects", project)
+			}
+
+			fmt.Printf("📂 Compiling wiki at %s...\n", targetDir)
+			err := filepath.Walk(targetDir, func(path string, info os.FileInfo, err error) error {
 				if err != nil || info.IsDir() || filepath.Ext(path) != ".md" || filepath.Base(path) == "README.md" {
 					return nil
 				}
@@ -66,7 +72,7 @@ func runCompileForFile(c *agent.Compiler, p *processor.WikiProcessor, path strin
 
 	fmt.Printf("🧠 Compiling relations for: %s...\n", filepath.Base(path))
 
-	relPath, _ := filepath.Rel(c.WikiDir, path)
+	relPath, _ := filepath.Rel(p.BaseDir, path)
 	entry, docContent, err := p.ParseFrontmatterWithContent(path, relPath)
 	if err != nil {
 		fmt.Printf("   ⚠️  Failed to parse %s: %v\n", path, err)
@@ -94,5 +100,6 @@ func init() {
 	compileCmd.Flags().String("out", "./wiki", "Wiki directory to compile")
 	compileCmd.Flags().String("model", "llama3", "Ollama model for reasoning")
 	compileCmd.Flags().Bool("force", false, "Force re-compilation even if links exist")
+	compileCmd.Flags().StringP("project", "p", "default", "Specific project to compile (use 'all' for everything)")
 	rootCmd.AddCommand(compileCmd)
 }

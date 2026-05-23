@@ -15,10 +15,11 @@ var indexCmd = &cobra.Command{
 		out, _ := cmd.Flags().GetString("out")
 		semantic, _ := cmd.Flags().GetBool("semantic")
 		model, _ := cmd.Flags().GetString("model")
+		project, _ := cmd.Flags().GetString("project")
 
-		proc := processor.NewWikiProcessor(out)
+		proc := processor.NewWikiProcessor(out, project)
 
-		fmt.Printf("Indexing directory: %s...\n", out)
+		fmt.Printf("Indexing directory: %s (Project: %s)...\n", out, project)
 
 		var err error
 		if semantic {
@@ -40,5 +41,6 @@ func init() {
 	indexCmd.Flags().String("out", "./wiki", "Wiki directory to index")
 	indexCmd.Flags().Bool("semantic", false, "Generate vector embeddings using Ollama")
 	indexCmd.Flags().String("model", "nomic-embed-text", "Ollama model for embeddings")
+	indexCmd.Flags().StringP("project", "p", "all", "Project to index (default 'all')")
 	rootCmd.AddCommand(indexCmd)
 }

@@ -20,17 +20,18 @@ var searchCmd = &cobra.Command{
 		out, _ := cmd.Flags().GetString("out")
 		semantic, _ := cmd.Flags().GetBool("semantic")
 		model, _ := cmd.Flags().GetString("model")
+		project, _ := cmd.Flags().GetString("project")
 		queryStr := args[0]
 
 		if semantic {
-			runSemanticSearch(out, queryStr, model)
+			runSemanticSearch(out, queryStr, model, project)
 		} else {
-			runBleveSearch(out, queryStr)
+			runBleveSearch(out, queryStr, project)
 		}
 	},
 }
 
-func runBleveSearch(out, queryStr string) {
+func runBleveSearch(out, queryStr, project string) {
 	blevePath := filepath.Join(out, "musu.bleve")
 	if _, err := os.Stat(blevePath); os.IsNotExist(err) {
 		fmt.Println("❌ Search index not found. Please run 'musu-crawl index' first.")
@@ -44,9 +45,14 @@ func runBleveSearch(out, queryStr string) {
 	}
 	defer index.Close()
 
+	// If project is specified and not "all", add project filter to query
+	if project != "all" && project != "" {
+		queryStr = fmt.Sprintf("+project:%s %s", project, queryStr)
+	}
+
 	query := bleve.NewQueryStringQuery(queryStr)
 	searchRequest := bleve.NewSearchRequest(query)
-	searchRequest.Fields = []string{"title", "source", "id", "summary"}
+	searchRequest.Fields = []string{"title", "source", "id", "summary", "project"}
 
 	searchResults, err := index.Search(searchRequest)
 	if err != nil {
@@ -63,7 +69,8 @@ func runBleveSearch(out, queryStr string) {
 	for i, hit := range searchResults.Hits {
 		title := hit.Fields["title"]
 		source := hit.Fields["source"]
-		fmt.Printf("%d. [%s] %v (ID: %s)\n", i+1, source, title, hit.ID)
+		hitProject := hit.Fields["project"]
+		fmt.Printf("%d. [%s] %v (ID: %s, Project: %v)\n", i+1, source, title, hit.ID, hitProject)
 		if summary, ok := hit.Fields["summary"]; ok && summary != "" {
 			fmt.Printf("   Summary: %v\n", summary)
 		}
@@ -71,7 +78,7 @@ func runBleveSearch(out, queryStr string) {
 	}
 }
 
-func runSemanticSearch(out, queryStr, model string) {
+func runSemanticSearch(out, queryStr, model, project string) {
 	vectorFile := filepath.Join(out, "musu.vectors.json")
 	indexFile := filepath.Join(out, "index.json")
 	if _, err := os.Stat(vectorFile); os.IsNotExist(err) {
@@ -91,6 +98,10 @@ func runSemanticSearch(out, queryStr, model string) {
 		var entries []processor.IndexEntry
 		json.Unmarshal(data, &entries)
 		for _, e := range entries {
+			// Filter by project if requested
+			if project != "all" && project != "" && e.Project != project {
+				continue
+			}
 			metaData[e.ID] = e
 		}
 	}
@@ -103,29 +114,32 @@ func runSemanticSearch(out, queryStr, model string) {
 		return
 	}
 
-	matches := vstore.Search(qVec, 5)
+	matches := vstore.Search(qVec, 10) // Get more to account for project filtering
 	if len(matches) == 0 {
 		fmt.Println("No semantic matches found.")
 		return
 	}
 
-	fmt.Printf("Found matches for %q (Semantic Vector):\n\n", queryStr)
-	for i, match := range matches {
+	fmt.Printf("Found matches for %q (Semantic Vector, Project: %s):\n\n", queryStr, project)
+	count := 0
+	for _, match := range matches {
 		entry, ok := metaData[match.ID]
-		title := match.ID
-		source := "?"
-		summary := ""
-		if ok {
-			title = entry.Title
-			source = entry.Source
-			summary = entry.Summary
-		}
+		if !ok {
+			continue
+		} // Skip if not in filtered metaData
 
-		fmt.Printf("%d. [%s] %s (ID: %s, Score: %.4f)\n", i+1, source, title, match.ID, match.Score)
-		if summary != "" {
-			fmt.Printf("   Summary: %s\n", summary)
+		count++
+		fmt.Printf("%d. [%s] %s (ID: %s, Project: %s, Score: %.4f)\n", count, entry.Source, entry.Title, match.ID, entry.Project, match.Score)
+		if entry.Summary != "" {
+			fmt.Printf("   Summary: %s\n", entry.Summary)
 		}
 		fmt.Println()
+		if count >= 5 {
+			break
+		}
+	}
+	if count == 0 {
+		fmt.Println("No matches found in the specified project.")
 	}
 }
 
@@ -133,5 +147,6 @@ func init() {
 	searchCmd.Flags().String("out", "./wiki", "Wiki directory to search in")
 	searchCmd.Flags().BoolP("semantic", "s", false, "Use vector semantic search")
 	searchCmd.Flags().String("model", "nomic-embed-text", "Ollama model for query embedding")
+	searchCmd.Flags().StringP("project", "p", "all", "Project to scope search (default 'all')")
 	rootCmd.AddCommand(searchCmd)
 }
