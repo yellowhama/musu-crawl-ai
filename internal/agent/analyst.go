@@ -5,7 +5,8 @@ import (
 )
 
 type Analyst struct {
-	Client *OllamaClient
+	Client        *OllamaClient
+	CustomPersona string
 }
 
 func (a *Analyst) Synthesize(query string, contents []string) (string, error) {
@@ -18,6 +19,9 @@ func (a *Analyst) Synthesize(query string, contents []string) (string, error) {
 	}
 
 	prompt := fmt.Sprintf(`You are a Research Analyst for "musu-crawl-ai". 
+
+%s
+
 Below are several sources collected for the query: "%s"
 
 Sources:
@@ -29,7 +33,7 @@ Your task:
 
 Format your output as:
 ANSWER: [Your synthesized response]
-MISSING: [List of specific information gaps, or "None"]`, query, fullContext)
+MISSING: [List of specific information gaps, or "None"]`, a.CustomPersona, query, fullContext)
 
 	return a.Client.Ask(prompt, false)
 }

@@ -1,7 +1,7 @@
-# Master Plan: musu-crawl-ai Development (STATUS: V0.3.0 AI BRAIN RELEASE)
+# Master Plan: musu-crawl-ai Development (STATUS: V0.4.0 Horizon)
 
 ## 🎯 Project Goal
-A high-performance, autonomous knowledge harvester and LLM Wiki generator. In v0.3.0, it transforms into a "Multi-Project AI Brain" with interactive graph visualization and project-scoped knowledge silos.
+A high-performance, autonomous knowledge harvester and LLM Wiki generator. In v0.4.0, it matures with hierarchical configuration, secure secret management, and customizable AI personas per research mission.
 
 ## ✅ Completed Milestones
 
@@ -14,21 +14,26 @@ A high-performance, autonomous knowledge harvester and LLM Wiki generator. In v0
 - [x] **LLM Wiki Pattern:** Local summarization, auto-tagging, and cross-linking (Compiler agent).
 - [x] **Distribution:** `init` for setup, `update` for binaries, CI/CD for cross-platform releases.
 
-### Phase 15-17: AI Brain & Galaxy (v0.3.0 New)
+### Phase 15-17: AI Brain & Galaxy (v0.3.0 Release)
 - [x] **Multi-Project Scoping:** All knowledge is now scoped by `--project` (default: 'all' or 'default'). Files are organized in `wiki/projects/{project_name}/`.
 - [x] **Interactive Knowledge Galaxy:** D3.js based dashboard visualizing documents as a connected stellar network.
 - [x] **Project-Aware Search:** Hybrid search (Bleve + Vectors) can now be filtered by project.
 - [x] **Branded UI:** Complete visual overhaul with official musu colors (#ffa602, #432c1c).
 
-## 🧐 Qualitative Evaluation (v0.3.0)
+### Phase 18: Project-Scoped Configuration & Secrets (v0.4.0 Current)
+- [x] **Hierarchical Config:** Integrated **Viper** to handle configuration with precedence (Flags > Env > Project Config > Global Config).
+- [x] **Secret Management:** Added **`auth`** command to securely manage project-specific API keys and secrets in `.env` files.
+- [x] **Custom Personas:** Supported per-project **`PROMPT.md`** to tailor the AI agent's research and analysis style.
 
-### 1. Multi-Project Maturity
-- **Siloing:** Knowledge is no longer a flat list. High-stakes research can be isolated into specific projects, preventing context leakage between unrelated tasks.
-- **Unified Discovery:** While projects are scoped, the global `index.json` still allows the agent to discover cross-project connections in the Knowledge Galaxy.
+## 🧐 Qualitative Evaluation (v0.4.0)
 
-### 2. Visualization & Insights
-- **Stellar Network:** The D3.js galaxy view provides instant intuition about knowledge density and clusters.
-- **Traceability:** The new dashboard allows users to click through the agent's discoveries with Obsidian-like fluidity.
+### 1. Advanced Context Management
+- **Persona Steering:** Researchers can now "steer" the agent's behavior differently for each project using `PROMPT.md`.
+- **Seamless Multitasking:** Switching projects automatically swaps API keys and settings, preventing manual overhead.
+
+### 2. Security & Professionalism
+- **Secret Isolation:** API keys are never stored in main config files or global environments, but kept close to the data they are used for.
+- **Production-Ready Configuration:** Following industry standards for CLI tool configuration precedence.
 
 ## 🚀 Next Steps (Future)
 1. **Agent Web Terminal:** Real-time log streaming directly to the dashboard via Websockets.

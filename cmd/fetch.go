@@ -19,13 +19,29 @@ var fetchCmd = &cobra.Command{
 	Use:   "fetch [source] [id]",
 	Short: "Fetch content from a source (or multiple from a file)",
 	Run: func(cmd *cobra.Command, args []string) {
+		project, _ := cmd.Flags().GetString("project")
+		conf, _ := utils.LoadConfig(project)
+
 		filePath, _ := cmd.Flags().GetString("file")
 		workers, _ := cmd.Flags().GetInt("workers")
+
+		// If flag is default, use config value
 		lang, _ := cmd.Flags().GetString("lang")
+		if !cmd.Flags().Changed("lang") {
+			lang = conf.Language
+		}
+
 		out, _ := cmd.Flags().GetString("out")
+		if !cmd.Flags().Changed("out") {
+			out = conf.WikiDir
+		}
+
 		compile, _ := cmd.Flags().GetBool("compile")
+
 		model, _ := cmd.Flags().GetString("model")
-		project, _ := cmd.Flags().GetString("project")
+		if !cmd.Flags().Changed("model") {
+			model = conf.OllamaModel
+		}
 
 		proc := processor.NewWikiProcessor(out, project)
 

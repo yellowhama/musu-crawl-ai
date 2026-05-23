@@ -6,7 +6,8 @@ import (
 )
 
 type Planner struct {
-	Client *OllamaClient
+	Client        *OllamaClient
+	CustomPersona string
 }
 
 type SearchPlan struct {
@@ -19,13 +20,15 @@ func (p *Planner) CreatePlan(userQuery string) (*SearchPlan, error) {
 Your goal is to take a vague user question and break it down into 3-5 specific, high-quality search queries.
 Target platforms include YouTube, GitHub, Arxiv, Reddit, and the general web.
 
+%s
+
 User Question: %s
 
 Output your response in strict JSON format:
 {
   "queries": ["query 1", "query 2", ...],
   "reason": "short explanation of the strategy"
-}`, userQuery)
+}`, p.CustomPersona, userQuery)
 
 	response, err := p.Client.Ask(prompt, true)
 	if err != nil {

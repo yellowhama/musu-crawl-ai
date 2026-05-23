@@ -2,12 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/yellowhama/musu-crawl-ai/internal/agent"
 	"github.com/yellowhama/musu-crawl-ai/internal/processor"
+	"github.com/yellowhama/musu-crawl-ai/internal/utils"
 )
 
 var researchCmd = &cobra.Command{
@@ -16,16 +19,35 @@ var researchCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		question := args[0]
-		model, _ := cmd.Flags().GetString("model")
-		limit, _ := cmd.Flags().GetInt("limit")
-		out, _ := cmd.Flags().GetString("out")
-		maxDepth, _ := cmd.Flags().GetInt("depth")
 		project, _ := cmd.Flags().GetString("project")
+		conf, _ := utils.LoadConfig(project)
+
+		model, _ := cmd.Flags().GetString("model")
+		if !cmd.Flags().Changed("model") {
+			model = conf.OllamaModel
+		}
+
+		limit, _ := cmd.Flags().GetInt("limit")
+
+		out, _ := cmd.Flags().GetString("out")
+		if !cmd.Flags().Changed("out") {
+			out = conf.WikiDir
+		}
+
+		maxDepth, _ := cmd.Flags().GetInt("depth")
+
+		// Load custom persona if exists
+		customPersona := ""
+		personaPath := filepath.Join(out, "projects", project, "PROMPT.md")
+		if data, err := os.ReadFile(personaPath); err == nil {
+			customPersona = string(data)
+			fmt.Printf("🎭 Loaded custom persona for project '%s'\n", project)
+		}
 
 		ollama := agent.NewOllamaClient(model)
-		planner := &agent.Planner{Client: ollama}
+		planner := &agent.Planner{Client: ollama, CustomPersona: customPersona}
 		searcher := &agent.Searcher{}
-		analyst := &agent.Analyst{Client: ollama}
+		analyst := &agent.Analyst{Client: ollama, CustomPersona: customPersona}
 		proc := processor.NewWikiProcessor(out, project)
 
 		fmt.Printf("🚀 Starting autonomous research for: %q (Project: %s)\n", question, project)
