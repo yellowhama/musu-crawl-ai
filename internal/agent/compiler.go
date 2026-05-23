@@ -10,9 +10,9 @@ import (
 )
 
 type Compiler struct {
-	Client    *OllamaClient
-	Index     bleve.Index
-	WikiDir   string
+	Client  *OllamaClient
+	Index   bleve.Index
+	WikiDir string
 }
 
 type Relationship struct {

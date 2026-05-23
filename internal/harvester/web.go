@@ -27,7 +27,7 @@ func (f *WebFetcher) Fetch(targetURL string) (string, string, error) {
 
 	// 1. Extract main content using readability
 	article, err := readability.FromReader(bytes.NewReader(body), parsedURL)
-	
+
 	var finalMD string
 	var title string
 

@@ -42,4 +42,3 @@ func init() {
 	indexCmd.Flags().String("model", "nomic-embed-text", "Ollama model for embeddings")
 	rootCmd.AddCommand(indexCmd)
 }
-

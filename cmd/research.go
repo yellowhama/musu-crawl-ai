@@ -49,7 +49,7 @@ var researchCmd = &cobra.Command{
 			// 2. Discover
 			fmt.Println("🌐 Discovering sources...")
 			urls := searcher.DiscoverURLs(plan.Queries, limit)
-			
+
 			var newURLs []string
 			for _, u := range urls {
 				if !seenURLs[u] {
@@ -60,7 +60,9 @@ var researchCmd = &cobra.Command{
 
 			if len(newURLs) == 0 {
 				fmt.Println("ℹ️  No new sources discovered in this iteration.")
-				if depth == 1 { break }
+				if depth == 1 {
+					break
+				}
 				// If we have some content from previous rounds, we might still want to analyze
 			} else {
 				fmt.Printf("🔗 Found %d new sources.\n", len(newURLs))
@@ -70,8 +72,10 @@ var researchCmd = &cobra.Command{
 				for _, url := range newURLs {
 					fmt.Printf("   Processing: %s...\n", url)
 					source := autoDetectSource(url)
-					if source == "" { source = "web" }
-					
+					if source == "" {
+						source = "web"
+					}
+
 					text, err := RunSingle(source, url, "en", proc, false, "")
 					if err != nil {
 						fmt.Printf("   ⚠️  Skip [%s]: %v\n", url, err)
@@ -113,7 +117,7 @@ var researchCmd = &cobra.Command{
 				break
 			}
 		}
-		
+
 		// Final Index
 		proc.UpdateIndex()
 		fmt.Println("\n✅ Autonomous research completed and indexed.")

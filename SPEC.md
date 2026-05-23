@@ -49,7 +49,17 @@ A high-performance, concurrent knowledge harvester and Wiki generator designed f
 - [x] **Agent Orchestration Guide:** Created **`AGENTS.md`** to provide standardized instructions for AI agents on how to manually orchestrate deep research loops using the tool's primitives.
 - [x] **Graceful Degradation:** Enhanced error handling to guide external agents to take over reasoning tasks when local services are unavailable.
 
+### Phase 14: Convenience & Distribution (New)
+- [x] **Setup Automation:** Added **`init`** command to automatically scaffold the wiki directory and check environment health.
+- [x] **Auto-Update:** Implemented **`update`** command for seamless binary updates from GitHub Releases.
+- [x] **Release Pipeline:** Created GitHub Actions + GoReleaser workflow for automated cross-platform binary builds (Windows, Linux, macOS).
+
 ## 🧐 Qualitative Evaluation (Code Audit)
+
+### 1. User Experience & Distribution
+- **One-Binary Distribution:** The project is now optimized for standalone binary distribution. Users no longer need a Go development environment.
+- **Easy Onboarding:** The `init` command reduces setup friction from minutes to seconds.
+- **Self-Maintenance:** The built-in update mechanism ensures users stay on the latest version with minimal effort.
 
 ### 1. Autonomy & Steering
 - **Agentic Loop:** The new `research` command allows the tool to operate as a proactive researcher rather than a reactive harvester.

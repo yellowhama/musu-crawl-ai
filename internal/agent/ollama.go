@@ -86,7 +86,7 @@ func (c *OllamaClient) Embed(text string) ([]float64, error) {
 
 	jsonData, _ := json.Marshal(reqBody)
 	url := "http://localhost:11434/api/embeddings"
-	
+
 	client := &http.Client{Timeout: 60 * time.Second}
 	resp, err := client.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {

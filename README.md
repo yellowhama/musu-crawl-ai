@@ -24,15 +24,21 @@ AI-Ready Knowledge Harvester & Wiki Generator.
     -   **Concurrency:** Worker pool pattern (Goroutines).
     -   **Robustness:** Exponential backoff retry logic.
 
-## 🛠️ Installation
+## 🛠️ Installation & Setup
 
+### 1. Download
+Download the latest binary for your OS from the [GitHub Releases](https://github.com/yellowhama/musu-crawl-ai/releases) page.
+
+### 2. Initialize
+Run the setup command to scaffold your local wiki and check for dependencies:
 ```bash
-# Clone the repository
-git clone https://github.com/yellowhama/musu-crawl-ai
-cd musu-crawl-ai
+./musu-crawl init
+```
 
-# Build the executable
-go build -o musu-crawl
+### 3. Update (Anytime)
+Keep your tool up-to-date with a single command:
+```bash
+./musu-crawl update
 ```
 
 ## 📖 Usage

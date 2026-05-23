@@ -33,7 +33,7 @@ func (f *RedditFetcher) Fetch(url string) (string, string, error) {
 	if !strings.HasSuffix(jsonURL, ".json") {
 		jsonURL += ".json"
 	}
-	
+
 	// Reddit requires a unique User-Agent to avoid 429
 	headers := map[string]string{
 		"User-Agent": "Mozilla/5.0 musu-crawl-ai/0.1.0",
@@ -72,12 +72,12 @@ func (f *RedditFetcher) formatPost(resp RedditResponse) (string, string, error) 
 
 	post := resp.Data.Children[0].Data
 	title := post.Title
-	
+
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("# %s\n\n", post.Title))
 	sb.WriteString(fmt.Sprintf("**Author:** u/%s | **Subreddit:** r/%s\n\n", post.Author, post.Subreddit))
 	sb.WriteString("---\n\n")
-	
+
 	if post.Selftext != "" {
 		sb.WriteString(post.Selftext)
 	} else if post.URL != "" {

@@ -40,7 +40,7 @@ func (s *Searcher) DiscoverURLs(queries []string, limit int) []string {
 
 func (s *Searcher) searchDuckDuckGo(query string) []string {
 	searchURL := fmt.Sprintf("https://html.duckduckgo.com/html/?q=%s", url.QueryEscape(query))
-	
+
 	body, _, err := utils.GetWithRetry(searchURL, nil)
 	if err != nil {
 		fmt.Printf("⚠️  Search failed: %v\n", err)
