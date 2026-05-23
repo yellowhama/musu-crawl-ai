@@ -12,28 +12,17 @@ This tool is a collection of high-quality **Knowledge Primitives**. Even if the 
 
 ## 🏎️ How to "Drive" this tool as an Agent
 
-### Scenario: "Perform Deep Research on [Topic]"
-If `musu-crawl-ai research` fails due to Ollama being missing, follow this loop manually:
+### Scenario: "Steer Your Own Behavior (Persona Integration)"
+You can customize your research persona per project.
+1.  **Customize:** Write specific instructions (e.g., "Focus on code examples and benchmarks") to `wiki/projects/{project}/PROMPT.md`.
+2.  **Execute:** When you run `research --project {project}`, the Planner and Analyst agents will automatically incorporate your instructions into their system prompts.
 
-1.  **Plan:** Generate a list of search queries based on the topic.
-2.  **Discover:** Use the `fetch web [search_engine_url]` or any available search tool to find target URLs.
-3.  **Harvest:** Run `.\musu-crawl fetch auto --file targets.txt -w 10`.
-4.  **Index:** Run `.\musu-crawl index`.
-5.  **Analyze:** 
-    - Read `wiki/index.json` to see what you just collected.
-    - Use `.\musu-crawl search "specific point"` to find relevant chunks.
-    - Read the resulting `.md` files and synthesize your final answer.
-6.  **Recursive Hop:** If you find gaps, repeat from Step 1.
-
-### Scenario: "Synthesize Knowledge Graph"
-If `musu-crawl compile` is unavailable:
-1.  Use `index.json` to find related documents.
-2.  Read the content of related documents.
-3.  Use your own LLM reasoning to determine the connection.
-4.  Use `replace` or `append` tools to write `[[WikiLinks]]` directly into the `.md` files.
+### Scenario: "Secure API Access"
+If you need to use an external API (like OpenAI) for a specific project:
+1.  **Set Secret:** Run `.\musu-crawl auth set OPENAI_API_KEY "key" --project {project}`.
+2.  **Retrieve:** Use the `utils.GetSecret("OPENAI_API_KEY")` primitive within your code logic (if you are extending the tool) or trust that the CLI is now configured to use that key for that project.
 
 ## 🛑 Critical Mandates for Agents
-- **Always Verify:** Run `go build -o musu-crawl.exe main.go` before using CLI commands if you changed the code.
+- **Persistence:** Project-specific settings in `config.toml` and `.env` are persistent. Use them to maintain long-term context.
 - **Privacy First:** Prefer the tool's local parsing/tagging logic over sending raw data to external APIs when possible.
-- **Efficiency:** Use the worker pool (`-w` flag) for batch fetches to save time.
-- **Structure:** Always ensure the YAML Frontmatter remains valid so the `index.json` generation doesn't break.
+- **Hierarchy Awareness:** Remember that flags always override file-based configs.
