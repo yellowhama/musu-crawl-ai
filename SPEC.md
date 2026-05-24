@@ -1,7 +1,7 @@
-# Master Plan: musu-crawl-ai Development (STATUS: V0.4.0 Horizon)
+# Master Plan: musu-crawl-ai Development (STATUS: V0.5.0 MULTI-MODAL RELEASE)
 
 ## 🎯 Project Goal
-A high-performance, autonomous knowledge harvester and LLM Wiki generator. In v0.4.0, it matures with hierarchical configuration, secure secret management, and customizable AI personas per research mission.
+A high-performance, autonomous knowledge harvester and LLM Wiki generator. In v0.5.0, it becomes "Multi-Modal Ready" by fetching localized visual assets and ensuring high-bandwidth UX with background update notifications.
 
 ## ✅ Completed Milestones
 
@@ -10,32 +10,30 @@ A high-performance, autonomous knowledge harvester and LLM Wiki generator. In v0
 - [x] **Robustness:** Exponential backoff, fallback bypasses for gated content.
 
 ### Phase 10-14: Intelligence & Distribution
-- [x] **Recursive Research:** Autonomous multi-agent loops (Planner -> Searcher -> Analyst).
+- [x] **Recursive Research:** Autonomous multi-agent loops (Planner -> Searcher -> Harvester -> Analyst).
 - [x] **LLM Wiki Pattern:** Local summarization, auto-tagging, and cross-linking (Compiler agent).
 - [x] **Distribution:** `init` for setup, `update` for binaries, CI/CD for cross-platform releases.
 
-### Phase 15-17: AI Brain & Galaxy (v0.3.0 Release)
-- [x] **Multi-Project Scoping:** All knowledge is now scoped by `--project` (default: 'all' or 'default'). Files are organized in `wiki/projects/{project_name}/`.
-- [x] **Interactive Knowledge Galaxy:** D3.js based dashboard visualizing documents as a connected stellar network.
-- [x] **Project-Aware Search:** Hybrid search (Bleve + Vectors) can now be filtered by project.
-- [x] **Branded UI:** Complete visual overhaul with official musu colors (#ffa602, #432c1c).
+### Phase 15-18: AI Brain & Configuration
+- [x] **Multi-Project Scoping:** Isolate research missions into dedicated project silos.
+- [x] **Interactive Galaxy Dashboard:** D3.js visualization for document connections.
+- [x] **Hierarchical Config:** Professional configuration precedence and secure secret management.
 
-### Phase 18: Project-Scoped Configuration & Secrets (v0.4.0 Current)
-- [x] **Hierarchical Config:** Integrated **Viper** to handle configuration with precedence (Flags > Env > Project Config > Global Config).
-- [x] **Secret Management:** Added **`auth`** command to securely manage project-specific API keys and secrets in `.env` files.
-- [x] **Custom Personas:** Supported per-project **`PROMPT.md`** to tailor the AI agent's research and analysis style.
+### Phase 19-20: Multi-Modal & UX (v0.5.0 New)
+- [x] **Localized Image Harvesting:** Automatically downloads images from web/papers to project-scoped storage and re-links them in Markdown.
+- [x] **Smart Update Notifications:** Background checks for new releases on startup to ensure users stay on the latest version.
 
-## 🧐 Qualitative Evaluation (v0.4.0)
+## 🧐 Qualitative Evaluation (v0.5.0)
 
-### 1. Advanced Context Management
-- **Persona Steering:** Researchers can now "steer" the agent's behavior differently for each project using `PROMPT.md`.
-- **Seamless Multitasking:** Switching projects automatically swaps API keys and settings, preventing manual overhead.
+### 1. Multi-Modal Integrity
+- **Persistence:** Localizing images prevents the "link rot" problem common in RAG systems. AI agents can now consistently access visual data for future vision-based analysis.
+- **Safety:** Image downloads are handled gracefully; network failures for images do not break the primary text-harvesting pipeline.
 
-### 2. Security & Professionalism
-- **Secret Isolation:** API keys are never stored in main config files or global environments, but kept close to the data they are used for.
-- **Production-Ready Configuration:** Following industry standards for CLI tool configuration precedence.
+### 2. User Experience (UX)
+- **Background Intelligence:** The startup version check provides immediate value without adding latency to the main execution path.
+- **Organization:** The project-scoped `images/` directory maintains clean separation of assets across different research missions.
 
 ## 🚀 Next Steps (Future)
-1. **Agent Web Terminal:** Real-time log streaming directly to the dashboard via Websockets.
-2. **Local Embedding Reranker:** Improve hybrid search precision with a local Cross-Encoder.
-3. **Image/OCR Harvester:** Extend fetchers to handle screenshots and scanned diagrams within papers.
+1. **Local LLM Vision Support:** Integrate with Ollama models that support image input (e.g., LLaVA) to automatically describe fetched images.
+2. **Cloud Vector Sync:** Add a command to sync the local `musu.vectors.json` to cloud Vector DBs (Pinecone, Weaviate).
+3. **Web UI Control Panel:** Allow triggering new crawls and research tasks directly from the Galaxy Dashboard.
