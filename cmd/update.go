@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -18,7 +19,7 @@ var updateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("🔍 Checking for updates...")
 
-		latest, url, err := getLatestRelease("yellowhama", "musu-crawl-ai")
+		latest, url, err := GetLatestRelease("yellowhama", "musu-crawl-ai")
 		if err != nil {
 			fmt.Printf("❌ Failed to check for updates: %v\n", err)
 			return
@@ -43,21 +44,18 @@ var updateCmd = &cobra.Command{
 	},
 }
 
-func getLatestRelease(owner, repo string) (string, string, error) {
-	apiURL := fmt.Sprintf("https://api.github.com/api/v3/repos/%s/%s/releases/latest", owner, repo)
-	// Fallback to public GitHub if not enterprise
-	if !strings.Contains(apiURL, "github.com/api/v3") {
-		apiURL = fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
-	}
-
-	resp, err := http.Get(apiURL)
+func GetLatestRelease(owner, repo string) (string, string, error) {
+	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
+	
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get(apiURL)
 	if err != nil {
 		return "", "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return "", "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		return "", "", fmt.Errorf("status %d", resp.StatusCode)
 	}
 
 	var release struct {
@@ -87,7 +85,7 @@ func getLatestRelease(owner, repo string) (string, string, error) {
 	}
 
 	if downloadURL == "" {
-		return "", "", fmt.Errorf("no matching binary found for %s/%s in release %s", runtime.GOOS, runtime.GOARCH, release.TagName)
+		return "", "", fmt.Errorf("no matching binary found")
 	}
 
 	return release.TagName, downloadURL, nil

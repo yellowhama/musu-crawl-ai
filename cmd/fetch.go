@@ -24,20 +24,20 @@ var fetchCmd = &cobra.Command{
 
 		filePath, _ := cmd.Flags().GetString("file")
 		workers, _ := cmd.Flags().GetInt("workers")
-
+		
 		// If flag is default, use config value
 		lang, _ := cmd.Flags().GetString("lang")
 		if !cmd.Flags().Changed("lang") {
 			lang = conf.Language
 		}
-
+		
 		out, _ := cmd.Flags().GetString("out")
 		if !cmd.Flags().Changed("out") {
 			out = conf.WikiDir
 		}
 
 		compile, _ := cmd.Flags().GetBool("compile")
-
+		
 		model, _ := cmd.Flags().GetString("model")
 		if !cmd.Flags().Changed("model") {
 			model = conf.OllamaModel
@@ -65,6 +65,10 @@ func RunSingle(source, id, lang string, proc *processor.WikiProcessor, compile b
 
 	tags := utils.ExtractKeywords(text, 5)
 	summary := utils.Summarize(text, 3)
+
+	// Phase 20: Image Harvesting (Multi-Modal Prep)
+	imageDir := filepath.Join(proc.BaseDir, "projects", proc.Project, "images")
+	text = utils.DownloadAndRelinkImages(text, imageDir)
 
 	sourceDir := source
 	if source == "yt" {
