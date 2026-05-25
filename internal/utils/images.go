@@ -13,7 +13,8 @@ import (
 
 // DownloadAndRelinkImages finds image links in markdown, downloads them to local storage,
 // and returns the modified markdown with relative local paths.
-func DownloadAndRelinkImages(markdown string, imageDir string) string {
+// It also takes an optional visionFunc to generate captions for the images.
+func DownloadAndRelinkImages(markdown string, imageDir string, visionFunc func(string) (string, error)) string {
 	os.MkdirAll(imageDir, 0755)
 
 	// Regex to find markdown image links: ![alt](url)
@@ -61,9 +62,21 @@ func DownloadAndRelinkImages(markdown string, imageDir string) string {
 			}
 		}
 
-		// 3. Return relinked markdown
+		// 3. Vision Analysis (Optional)
+		caption := ""
+		if visionFunc != nil {
+			fmt.Printf("   👁️  Analyzing image: %s...\n", fileName)
+			if desc, err := visionFunc(localPath); err == nil {
+				caption = desc
+			}
+		}
+
+		// 4. Return relinked markdown
 		// Path should be relative to the markdown file (which is in {project}/{source}/)
 		// Images are in {project}/images/
+		if caption != "" {
+			return fmt.Sprintf("![%s](../images/%s)\n> **Vision AI:** %s", altText, fileName, caption)
+		}
 		return fmt.Sprintf("![%s](../images/%s)", altText, fileName)
 	})
 }

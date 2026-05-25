@@ -79,14 +79,18 @@ func RunSingle(source, id, lang string, proc *processor.WikiProcessor, compile b
 	tags := utils.ExtractKeywords(text, 5)
 	summary := utils.Summarize(text, 3)
 
+	// AI Intelligence Setup
+	ollama := agent.NewOllamaClient(model)
+
 	// Phase 20: Image Harvesting (Multi-Modal Prep)
+	// Phase 25: Vision Intelligence
 	imageDir := filepath.Join(proc.BaseDir, "projects", proc.Project, "images")
-	text = utils.DownloadAndRelinkImages(text, imageDir)
+	text = utils.DownloadAndRelinkImages(text, imageDir, ollama.DescribeImage)
 
 	reliability := GetReliability(source)
 
-	// Processor now handles ID normalization and source directory mapping internally
-	fname, err := proc.SaveToWiki(source, id, title, text, tags, summary, reliability)
+	// ⚡ Live Knowledge Sync: Processor handles ID normalization and incremental indexing
+	fname, err := proc.SaveToWikiWithEmbedder(source, id, title, text, tags, summary, reliability, ollama.Embed)
 	if err != nil {
 		return "", err
 	}
@@ -96,7 +100,6 @@ func RunSingle(source, id, lang string, proc *processor.WikiProcessor, compile b
 	// Autonmous Knowledge Compiling
 	if compile {
 		fmt.Printf("🧠 Compiling knowledge links for [%s]...\n", id)
-		ollama := agent.NewOllamaClient(model)
 		compiler, err := agent.NewCompiler(ollama, proc.BaseDir)
 		if err == nil {
 			defer compiler.Close()

@@ -41,6 +41,10 @@ func NewWikiProcessor(baseDir string, project string) *WikiProcessor {
 }
 
 func (p *WikiProcessor) SaveToWiki(source, rawID, title, content string, tags []string, summary string, reliability float64) (string, error) {
+	return p.SaveToWikiWithEmbedder(source, rawID, title, content, tags, summary, reliability, nil)
+}
+
+func (p *WikiProcessor) SaveToWikiWithEmbedder(source, rawID, title, content string, tags []string, summary string, reliability float64, embedder func(string) ([]float64, error)) (string, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -85,10 +89,83 @@ func (p *WikiProcessor) SaveToWiki(source, rawID, title, content string, tags []
 		return "", err
 	}
 
-	// Update Index (Atomic within lock)
-	p.updateIndexWithEmbedderLocked(nil)
+	// ⚡ Incremental Indexing (Live Sync)
+	relPath, _ := filepath.Rel(p.BaseDir, path)
+	entry := IndexEntry{
+		ID:          safeID,
+		Title:       title,
+		Source:      source,
+		Project:     p.Project,
+		Reliability: reliability,
+		Path:        relPath,
+		Date:        time.Now().Format("2006-01-02"),
+		Tags:        tags,
+		Summary:     summary,
+		Content:     content,
+	}
+
+	p.indexSingleDocumentLocked(entry, embedder)
 
 	return filename, nil
+}
+
+func (p *WikiProcessor) indexSingleDocumentLocked(entry IndexEntry, embedder func(string) ([]float64, error)) error {
+	blevePath := filepath.Join(p.BaseDir, "musu.bleve")
+	indexFile := filepath.Join(p.BaseDir, "index.json")
+	vectorFile := filepath.Join(p.BaseDir, "musu.vectors.json")
+
+	// 1. Bleve Index
+	var idx bleve.Index
+	var err error
+	if _, statErr := os.Stat(blevePath); os.IsNotExist(statErr) {
+		mapping := bleve.NewIndexMapping()
+		idx, err = bleve.New(blevePath, mapping)
+	} else {
+		idx, err = bleve.Open(blevePath)
+	}
+	if err == nil {
+		idx.Index(entry.ID, entry)
+		idx.Close()
+	}
+
+	// 2. Vector Index
+	if embedder != nil {
+		vstore := NewVectorStore()
+		vstore.Load(vectorFile)
+		
+		textToEmbed := entry.Summary
+		if textToEmbed == "" {
+			textToEmbed = entry.Title
+		}
+		if vec, err := embedder(textToEmbed); err == nil {
+			vstore.Embeddings[entry.ID] = vec
+			vstore.Save(vectorFile)
+		}
+	}
+
+	// 3. JSON Index
+	var entries []IndexEntry
+	if data, err := os.ReadFile(indexFile); err == nil {
+		json.Unmarshal(data, &entries)
+	}
+	
+	// Check if exists, update or append
+	found := false
+	for i, e := range entries {
+		if e.ID == entry.ID {
+			entries[i] = entry
+			found = true
+			break
+		}
+	}
+	if !found {
+		entries = append(entries, entry)
+	}
+
+	jsonData, _ := json.MarshalIndent(entries, "", "  ")
+	os.WriteFile(indexFile, jsonData, 0644)
+	
+	return nil
 }
 
 func (p *WikiProcessor) GetSourceDir(source string) string {
@@ -166,7 +243,7 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 
 	var entries []IndexEntry
 
-	// Search in wiki/projects/
+	// Search in projects/
 	projectsDir := filepath.Join(p.BaseDir, "projects")
 	if _, err := os.Stat(projectsDir); os.IsNotExist(err) {
 		os.MkdirAll(projectsDir, 0755)
@@ -196,7 +273,6 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 			if embedder != nil {
 				if _, exists := vstore.Embeddings[entry.ID]; !exists {
 					fmt.Printf("🧠 Generating embedding for %s...\n", entry.ID)
-					// Embed summary or title
 					textToEmbed := entry.Summary
 					if textToEmbed == "" {
 						textToEmbed = entry.Title
@@ -204,8 +280,6 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 					vec, err := embedder(textToEmbed)
 					if err == nil {
 						vstore.Embeddings[entry.ID] = vec
-					} else {
-						fmt.Printf("   ⚠️  Embedding failed: %v\n", err)
 					}
 				}
 			}
@@ -223,14 +297,9 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 		return err
 	}
 
-	// Save README.md
 	os.WriteFile(readmeFile, []byte(sb.String()), 0644)
-
-	// Save index.json
 	jsonData, _ := json.MarshalIndent(entries, "", "  ")
 	os.WriteFile(indexFile, jsonData, 0644)
-
-	// Save vectors
 	return vstore.Save(vectorFile)
 }
 
@@ -272,7 +341,7 @@ func (p *WikiProcessor) ParseFrontmatterWithContent(path string, relPath string)
 		meta.Project = "default"
 	}
 	if meta.Reliability == 0 {
-		meta.Reliability = 0.7 // Default
+		meta.Reliability = 0.7
 	}
 
 	return &IndexEntry{
