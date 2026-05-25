@@ -21,15 +21,16 @@ type WikiProcessor struct {
 }
 
 type IndexEntry struct {
-	ID      string   `json:"id"`
-	Title   string   `json:"title"`
-	Source  string   `json:"source"`
-	Project string   `json:"project"`
-	Path    string   `json:"path"`
-	Date    string   `json:"date"`
-	Tags    []string `json:"tags,omitempty"`
-	Summary string   `json:"summary,omitempty"`
-	Content string   `json:"-"` // Not in JSON but indexed in Bleve
+	ID          string   `json:"id"`
+	Title       string   `json:"title"`
+	Source      string   `json:"source"`
+	Project     string   `json:"project"`
+	Reliability float64  `json:"reliability"`
+	Path        string   `json:"path"`
+	Date        string   `json:"date"`
+	Tags        []string `json:"tags,omitempty"`
+	Summary     string   `json:"summary,omitempty"`
+	Content     string   `json:"-"` // Not in JSON but indexed in Bleve
 }
 
 func NewWikiProcessor(baseDir string, project string) *WikiProcessor {
@@ -39,7 +40,7 @@ func NewWikiProcessor(baseDir string, project string) *WikiProcessor {
 	return &WikiProcessor{BaseDir: baseDir, Project: project}
 }
 
-func (p *WikiProcessor) SaveToWiki(source, rawID, title, content string, tags []string, summary string) (string, error) {
+func (p *WikiProcessor) SaveToWiki(source, rawID, title, content string, tags []string, summary string, reliability float64) (string, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -65,6 +66,7 @@ func (p *WikiProcessor) SaveToWiki(source, rawID, title, content string, tags []
 	sb.WriteString(fmt.Sprintf("title: %q\n", title))
 	sb.WriteString(fmt.Sprintf("source: %s\n", source))
 	sb.WriteString(fmt.Sprintf("project: %s\n", p.Project))
+	sb.WriteString(fmt.Sprintf("reliability: %.2f\n", reliability))
 	sb.WriteString(fmt.Sprintf("id: %s\n", safeID))
 	sb.WriteString(fmt.Sprintf("date: %s\n", time.Now().Format("2006-01-02")))
 	if len(tags) > 0 {
@@ -252,13 +254,14 @@ func (p *WikiProcessor) ParseFrontmatterWithContent(path string, relPath string)
 	docContent := strings.TrimSpace(content[endIdx+6:])
 
 	var meta struct {
-		Title   string   `yaml:"title"`
-		Source  string   `yaml:"source"`
-		Project string   `yaml:"project"`
-		ID      string   `yaml:"id"`
-		Date    string   `yaml:"date"`
-		Tags    []string `yaml:"tags"`
-		Summary string   `yaml:"summary"`
+		Title       string   `yaml:"title"`
+		Source      string   `yaml:"source"`
+		Project     string   `yaml:"project"`
+		Reliability float64  `yaml:"reliability"`
+		ID          string   `yaml:"id"`
+		Date        string   `yaml:"date"`
+		Tags        []string `yaml:"tags"`
+		Summary     string   `yaml:"summary"`
 	}
 
 	if err := yaml.Unmarshal([]byte(yamlPart), &meta); err != nil {
@@ -268,16 +271,20 @@ func (p *WikiProcessor) ParseFrontmatterWithContent(path string, relPath string)
 	if meta.Project == "" {
 		meta.Project = "default"
 	}
+	if meta.Reliability == 0 {
+		meta.Reliability = 0.7 // Default
+	}
 
 	return &IndexEntry{
-		ID:      meta.ID,
-		Title:   meta.Title,
-		Source:  meta.Source,
-		Project: meta.Project,
-		Path:    relPath,
-		Date:    meta.Date,
-		Tags:    meta.Tags,
-		Summary: meta.Summary,
+		ID:          meta.ID,
+		Title:       meta.Title,
+		Source:      meta.Source,
+		Project:     meta.Project,
+		Reliability: meta.Reliability,
+		Path:        relPath,
+		Date:        meta.Date,
+		Tags:        meta.Tags,
+		Summary:     meta.Summary,
 	}, docContent, nil
 }
 

@@ -56,6 +56,20 @@ var fetchCmd = &cobra.Command{
 	},
 }
 
+func GetReliability(source string) float64 {
+	source = strings.ToLower(source)
+	switch source {
+	case "arxiv", "github", "gh":
+		return 0.9
+	case "youtube", "yt", "web":
+		return 0.7
+	case "x", "twitter", "reddit":
+		return 0.5
+	default:
+		return 0.6
+	}
+}
+
 func RunSingle(source, id, lang string, proc *processor.WikiProcessor, compile bool, model string) (string, error) {
 	title, text, err := dispatchFetch(source, id, lang)
 	if err != nil {
@@ -69,13 +83,15 @@ func RunSingle(source, id, lang string, proc *processor.WikiProcessor, compile b
 	imageDir := filepath.Join(proc.BaseDir, "projects", proc.Project, "images")
 	text = utils.DownloadAndRelinkImages(text, imageDir)
 
+	reliability := GetReliability(source)
+
 	// Processor now handles ID normalization and source directory mapping internally
-	fname, err := proc.SaveToWiki(source, id, title, text, tags, summary)
+	fname, err := proc.SaveToWiki(source, id, title, text, tags, summary, reliability)
 	if err != nil {
 		return "", err
 	}
 
-	fmt.Printf("✅ Saved [%s] to Wiki project '%s': %s (Tags: %s)\n", id, proc.Project, fname, strings.Join(tags, ", "))
+	fmt.Printf("✅ Saved [%s] to Wiki project '%s': %s (Reliability: %.1f)\n", id, proc.Project, fname, reliability)
 
 	// Autonmous Knowledge Compiling
 	if compile {

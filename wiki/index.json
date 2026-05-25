@@ -4,6 +4,7 @@
     "title": "spf13/cobra",
     "source": "github",
     "project": "default",
+    "reliability": 0.7,
     "path": "github/spf13_cobra_spf13_cobra.md",
     "date": "2026-05-22"
   },
@@ -12,6 +13,7 @@
     "title": "tiiuae/falcon-7b",
     "source": "huggingface",
     "project": "default",
+    "reliability": 0.7,
     "path": "huggingface/tiiuae_falcon-7b_tiiuae_falcon-7b.md",
     "date": "2026-05-22"
   },
@@ -20,6 +22,7 @@
     "title": "Attention Is All You Need",
     "source": "papers",
     "project": "default",
+    "reliability": 0.7,
     "path": "papers/1706.03762_Attention Is All You Need.md",
     "date": "2026-05-22",
     "tags": [
@@ -36,6 +39,7 @@
     "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
     "source": "yt",
     "project": "audit-fix",
+    "reliability": 0.7,
     "path": "projects/audit-fix/youtube/dQw4w9WgXcQ_Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster).md",
     "date": "2026-05-26",
     "tags": [
@@ -51,6 +55,7 @@
     "title": "Go 1.22 is released! - The Go Programming Language",
     "source": "web",
     "project": "image-test",
+    "reliability": 0.7,
     "path": "projects/image-test/web/go.dev_blog_go1.22_Go 1.22 is released! - The Go Programming Language.md",
     "date": "2026-05-24",
     "tags": [
@@ -67,6 +72,7 @@
     "title": "",
     "source": "web",
     "project": "image-test",
+    "reliability": 0.7,
     "path": "projects/image-test/web/www.reddit.com_r_golang_.json_.md",
     "date": "2026-05-24",
     "tags": [
@@ -82,6 +88,7 @@
     "title": "Attention Is All You Need",
     "source": "papers",
     "project": "ocr-test",
+    "reliability": 0.7,
     "path": "projects/ocr-test/papers/1706.03762_Attention Is All You Need.md",
     "date": "2026-05-24",
     "tags": [
@@ -94,10 +101,28 @@
     "summary": "2 Multi-Head Attention ‣ 3. A decomposable attention model. ## Attention Visualizations\n\n!"
   },
   {
+    "id": "go.dev_blog_go1.22",
+    "title": "Go 1.22 is released! - The Go Programming Language",
+    "source": "web",
+    "project": "research-test",
+    "reliability": 0.7,
+    "path": "projects/research-test/web/go.dev_blog_go1.22_Go 1.22 is released! - The Go Programming Language.md",
+    "date": "2026-05-26",
+    "tags": [
+      "go",
+      "dev",
+      "https",
+      "22",
+      "values"
+    ],
+    "summary": "## [The Go Blog](https://go. Go 1. ServeMux](https://go."
+  },
+  {
     "id": "dQw4w9WgXcQ",
     "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
     "source": "youtube",
     "project": "test-brain",
+    "reliability": 0.7,
     "path": "projects/test-brain/youtube/dQw4w9WgXcQ_Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster).md",
     "date": "2026-05-24",
     "tags": [
@@ -113,6 +138,7 @@
     "title": "Go 1.22 is released! - The Go Programming Language",
     "source": "web",
     "project": "default",
+    "reliability": 0.7,
     "path": "web/go.dev_blog_go1.22_Go 1.22 is released! - The Go Programming Language.md",
     "date": "2026-05-22"
   },
@@ -121,6 +147,7 @@
     "title": "YouTube Developers Live: Embedded Web Player Customization",
     "source": "youtube",
     "project": "default",
+    "reliability": 0.7,
     "path": "youtube/M7lc1UVf-VE_YouTube Developers Live_ Embedded Web Player Customization.md",
     "date": "2026-05-22"
   },
@@ -129,6 +156,7 @@
     "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
     "source": "youtube",
     "project": "default",
+    "reliability": 0.7,
     "path": "youtube/dQw4w9WgXcQ_Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster).md",
     "date": "2026-05-22",
     "tags": [

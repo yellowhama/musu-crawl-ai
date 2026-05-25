@@ -15,7 +15,7 @@ import (
 
 var researchCmd = &cobra.Command{
 	Use:   "research [question]",
-	Short: "Perform autonomous recursive multi-agent research",
+	Short: "Perform autonomous recursive multi-agent research with skepticism",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		question := args[0]
@@ -54,20 +54,23 @@ var researchCmd = &cobra.Command{
 
 		seenURLs := make(map[string]bool)
 		currentGoal := question
-		var allContents []string
+		var allSources []agent.SourceContent
 
 		for depth := 1; depth <= maxDepth; depth++ {
 			fmt.Printf("\n--- 📍 Research Depth %d/%d ---\n", depth, maxDepth)
 			fmt.Printf("🎯 Current Target: %s\n", currentGoal)
 
 			// 1. Plan
-			fmt.Println("🧠 Planning search strategy...")
+			fmt.Println("🧠 Planning search strategy (Socratic mode)...")
 			plan, err := planner.CreatePlan(currentGoal)
 			if err != nil {
 				fmt.Printf("❌ Planning failed: %v\n", err)
 				break
 			}
 			fmt.Printf("📋 Strategy: %s\n", plan.Reason)
+			if len(plan.Hypotheses) > 0 {
+				fmt.Printf("🔍 Testing Hypotheses: %s\n", strings.Join(plan.Hypotheses, ", "))
+			}
 
 			// 2. Discover
 			fmt.Println("🌐 Discovering sources...")
@@ -90,7 +93,7 @@ var researchCmd = &cobra.Command{
 				fmt.Printf("🔗 Found %d new sources.\n", len(newURLs))
 
 				// 3. Harvest & Process
-				fmt.Println("⛏️  Harvesting and processing content...")
+				fmt.Println("⛏️  Harvesting and evaluating content...")
 				for _, url := range newURLs {
 					fmt.Printf("   Processing: %s...\n", url)
 					source := autoDetectSource(url)
@@ -103,18 +106,25 @@ var researchCmd = &cobra.Command{
 						fmt.Printf("   ⚠️  Skip [%s]: %v\n", url, err)
 						continue
 					}
-					allContents = append(allContents, text)
+					
+					reliability := GetReliability(source)
+					allSources = append(allSources, agent.SourceContent{
+						ID:          url,
+						Content:     text,
+						Reliability: reliability,
+						SourceType:  source,
+					})
 				}
 			}
 
-			if len(allContents) == 0 {
+			if len(allSources) == 0 {
 				fmt.Println("❌ No content available to analyze.")
 				break
 			}
 
 			// 4. Analyze
-			fmt.Println("📊 Analyzing accumulated knowledge...")
-			report, err := analyst.Synthesize(question, allContents)
+			fmt.Println("📊 Analyzing accumulated knowledge (Skeptical mode)...")
+			report, err := analyst.Synthesize(question, allSources)
 			if err != nil {
 				fmt.Printf("❌ Analysis failed: %v\n", err)
 				break
@@ -123,21 +133,35 @@ var researchCmd = &cobra.Command{
 			fmt.Println("\n--- CURRENT FINDINGS ---")
 			fmt.Println(report)
 
-			// Check for missing info
+			// Recursive logic
+			recursiveQuery := ""
+			
+			// 1. Check for contradictions
+			contraMatch := regexp.MustCompile(`(?s)CONTRADICTIONS:\s*(.*)`).FindStringSubmatch(report)
+			if len(contraMatch) >= 2 {
+				contraInfo := strings.TrimSpace(contraMatch[1])
+				if strings.ToLower(contraInfo) != "none" && strings.ToLower(contraInfo) != "none." && len(contraInfo) > 5 {
+					fmt.Printf("\n⚔️  Contradiction found! Initiating tie-break research for: %s\n", contraInfo)
+					recursiveQuery += "Resolve this contradiction: " + contraInfo + ". "
+				}
+			}
+
+			// 2. Check for missing info
 			missingMatch := regexp.MustCompile(`(?s)MISSING:\s*(.*)`).FindStringSubmatch(report)
 			if len(missingMatch) >= 2 {
 				missingInfo := strings.TrimSpace(missingMatch[1])
 				lowerMissing := strings.ToLower(missingInfo)
-				if lowerMissing == "none" || lowerMissing == "none." || len(missingInfo) < 5 {
-					fmt.Println("\n✨ Research goal fully satisfied. Stopping.")
-					break
+				if lowerMissing != "none" && lowerMissing != "none." && len(missingInfo) > 5 {
+					fmt.Printf("\n🔁 Gaps identified. Initiating next hop for: %s\n", missingInfo)
+					recursiveQuery += "Investigate these missing points: " + missingInfo
 				}
-				// Recursive update
-				currentGoal = "Additional research needed on: " + missingInfo
-				fmt.Printf("\n🔁 Gaps identified. Initiating next hop for: %s\n", missingInfo)
-			} else {
+			}
+
+			if recursiveQuery == "" {
+				fmt.Println("\n✨ Research goal fully satisfied. Stopping.")
 				break
 			}
+			currentGoal = recursiveQuery
 		}
 
 		// Final Index
