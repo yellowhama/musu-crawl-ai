@@ -1,28 +1,35 @@
 # 🤖 Guidance for AI Agents (Gemini CLI, Claude Code, etc.)
 
-`musu-crawl-ai` is designed to be your primary high-performance data acquisition layer. If you are an AI agent "driving" this repository, use these instructions to maximize your research capabilities.
+`musu-crawl-ai` is designed to be your primary high-performance data acquisition and knowledge management layer. If you are an AI agent "driving" this repository, follow these instructions to maximize your research performance.
 
 ## 🏗️ Core Architecture for Agents
-This tool is a collection of high-quality **Knowledge Primitives**. Even if the internal LLM (Ollama) features are unavailable, you can achieve the same "Autonomous Research" results by combining these primitives yourself.
+This tool is a collection of high-quality **Knowledge Primitives**. You are encouraged to combine these primitives to perform complex, multi-step research.
 
 ### 1. The Knowledge Primitives
-- **`fetch [source] [url]`**: Your primary way to bypass YouTube blocks, clean up messy HTML, and parse academic PDFs. It outputs clean Markdown with YAML metadata.
-- **`index`**: Generates `index.json` (your knowledge map) and a keyword search index.
-- **`search [query]`**: Uses **Bleve** (keyword-based) or **Semantic Vector** (if embeddings exist) to find relevant snippets without you needing to read every file.
+- **`fetch [source] [url]`**: Your primary tool to bypass blocks, clean HTML, and parse PDFs (including OCR for image-based PDFs if Tesseract is installed). Outputs clean Markdown with YAML.
+- **`index`**: Re-generates the global `index.json` knowledge map and refreshes the Bleve/Vector search indexes.
+- **`search [query]`**: High-performance search. Use `--semantic` for meaning-based retrieval if Ollama embeddings are available.
 
 ## 🏎️ How to "Drive" this tool as an Agent
 
-### Scenario: "Steer Your Own Behavior (Persona Integration)"
-You can customize your research persona per project.
-1.  **Customize:** Write specific instructions (e.g., "Focus on code examples and benchmarks") to `wiki/projects/{project}/PROMPT.md`.
-2.  **Execute:** When you run `research --project {project}`, the Planner and Analyst agents will automatically incorporate your instructions into their system prompts.
+### Scenario: "Perform Multi-hop Deep Research"
+1.  **Plan:** Decompose the goal into queries.
+2.  **Discover:** Find URLs via search or direct inputs.
+3.  **Harvest:** Run `.\musu-crawl fetch auto --file targets.txt -w 10 --project my_project`.
+4.  **Analyze:** Read `wiki/index.json` and specific `.md` files in `wiki/projects/my_project/`.
+5.  **Synthesize:** Use your own reasoning to answer, identifying gaps for the next "hop".
 
-### Scenario: "Secure API Access"
-If you need to use an external API (like OpenAI) for a specific project:
-1.  **Set Secret:** Run `.\musu-crawl auth set OPENAI_API_KEY "key" --project {project}`.
-2.  **Retrieve:** Use the `utils.GetSecret("OPENAI_API_KEY")` primitive within your code logic (if you are extending the tool) or trust that the CLI is now configured to use that key for that project.
+### Scenario: "Build a Persistent Knowledge Graph"
+1.  After fetching, run `.\musu-crawl compile --project my_project`.
+2.  This triggers the internal Compiler Agent (via Ollama) to link related nodes.
+3.  **Manual Overwrite:** If Ollama is missing, you should manually read related files and write `[[WikiLinks]]` into the Markdown body yourself using file-edit tools.
+
+### Scenario: "Manage Project Personas & Secrets"
+1.  **Steer Yourself:** Write specific research instructions to `wiki/projects/{name}/PROMPT.md`.
+2.  **Auth Management:** Run `.\musu-crawl auth set KEY VALUE --project {name}` to store project-scoped secrets (e.g., API keys).
 
 ## 🛑 Critical Mandates for Agents
-- **Persistence:** Project-specific settings in `config.toml` and `.env` are persistent. Use them to maintain long-term context.
-- **Privacy First:** Prefer the tool's local parsing/tagging logic over sending raw data to external APIs when possible.
-- **Hierarchy Awareness:** Remember that flags always override file-based configs.
+- **Self-Healing:** If a command fails (e.g., missing Tesseract or Ollama), gracefully switch to your own logic (manual analysis or text-only extraction) and notify the user.
+- **Project Scoping:** Always use the `--project` flag to avoid context contamination.
+- **Thread-Safe Ops:** Rely on the tool's built-in locking; do not worry about concurrent fetches corrupting the index.
+- **Validation:** Always verify the structure of YAML Frontmatter before writing manual modifications to ensure `index.json` remains parsable.

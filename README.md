@@ -2,94 +2,93 @@
 
 > **The High-Bandwidth Data Supply Chain for AI Researcher Agents.**
 
-`musu-crawl-ai` is a professional, high-performance Go-based crawler and LLM Wiki generator. It empowers AI agents (and humans) to discover, fetch, organize, and synthesize knowledge from across the web into a structured, searchable, and interlinked "AI Brain."
+`musu-crawl-ai` is a high-performance, production-hardened Go-based knowledge harvester and LLM Wiki generator. It empowers AI agents (and humans) to discover, fetch, organize, and synthesize knowledge from across the web into a structured, searchable, and interlinked "AI Brain."
 
 ---
 
 ## 🚀 Key Features
 
 ### 📡 Universal Knowledge Harvesters
-- **YouTube:** High-fidelity transcript extraction with Innertube fallback.
-- **Academic (Arxiv):** Perfect layout preservation using HTML-first parsing.
+- **YouTube:** High-fidelity transcript extraction with Innertube fallback to bypass PO-Token/403 blocks.
+- **Academic (Arxiv):** Perfect layout preservation using HTML-first parsing and **OCR fallback** for scanned documents.
 - **Code (GitHub):** Repository metadata and documentation extraction.
-- **Social (Twitter/Reddit):** Thread and post harvesting via resilient bypasses.
+- **Social (Twitter/Reddit):** Resilient post harvesting via Syndication and OEmbed bypasses.
 - **General Web:** Noise-free content extraction using Readability algorithms.
 
 ### 🧠 Autonomous Intelligence (The Brain)
 - **Recursive Research:** Multi-agent loop (Planner -> Searcher -> Harvester -> Analyst) that recursively fills information gaps.
-- **Wiki Compiler:** Autonomous document cross-linking and relationship explanation.
+- **Wiki Compiler:** Autonomous document cross-linking and relationship explanation using local LLM reasoning.
 - **Hybrid Search:** Instant keyword (Bleve) and semantic vector (Ollama) search.
-- **Smart Formatting:** Auto-tagging and extractive summarization for every document.
+- **Multi-Modal Ready:** Automatically downloads and re-links images for future vision-based AI analysis.
 
-### 🏢 Enterprise-Grade Architecture
-- **Multi-Project Scoping:** Isolate research missions into dedicated project silos.
+### 🦾 Production-Hardened Architecture
+- **Thread-Safe Core:** Robust locking mechanism to prevent data corruption during massive parallel fetches.
+- **Multi-Project Scoping:** Isolate research missions into dedicated project silos (`wiki/projects/`).
 - **Hierarchical Config:** Professional configuration precedence (Flags > Env > Project > Global).
-- **Secure Secrets:** Built-in `auth` manager to keep API keys in project-specific encrypted/hidden stores.
-- **One-Binary Distribution:** Standalone executable with built-in `init` and `update` commands.
+- **Secure Secrets:** Built-in `auth` manager to keep API keys in project-specific hidden stores.
 
 ---
 
 ## 🛠️ Installation & Setup
 
 ### 1. Download
-Get the latest binary for your OS from [GitHub Releases](https://github.com/yellowhama/musu-crawl-ai/releases).
+Get the latest binary (v0.5.1) from [GitHub Releases](https://github.com/yellowhama/musu-crawl-ai/releases).
 
 ### 2. Initialize
 ```bash
 ./musu-crawl init
 ```
 
-### 3. Configure (Optional)
-Set your preferred language or Ollama model in `~/.musu/config.toml`.
+### 3. External Dependencies (Optional but Recommended)
+- **Intelligence:** Install [Ollama](https://ollama.com) to enable Research, Compilation, and Semantic Search.
+- **OCR:** Install [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html) (`winget install tesseract` on Windows) to extract text from scanned PDFs.
 
 ---
 
 ## 📖 User Manual
 
 ### 1. Project Management
-All work in `musu-crawl` should be scoped to a project to maintain context.
+Scope your work to maintain context and isolation:
 ```bash
-# Start a new research project
-./musu-crawl fetch web https://example.com --project my-new-research
+./musu-crawl fetch web https://example.com --project my-new-mission
 ```
 
-### 2. Managing Secrets
-Securely add API keys to a specific project:
+### 2. Autonomous Deep Research
 ```bash
-./musu-crawl auth set OPENAI_API_KEY "your-key" --project my-new-research
+./musu-crawl research "Explain the current state of Solid State Batteries" --project tech-review --depth 3
 ```
 
-### 3. Autonomous Deep Research
-Let the agent handle the entire discovery and analysis loop:
-```bash
-./musu-crawl research "What are the latest breakthroughs in fusion energy?" --project energy-tech --depth 2
-```
-
-### 4. Exploring the Knowledge Galaxy
-Visualize your "Brain" in the browser:
+### 3. Knowledge Galaxy Dashboard
+Visualize your interlinked knowledge base:
 ```bash
 ./musu-crawl serve --port 8080
 # Visit http://localhost:8080/galaxy
+```
+
+### 4. Self-Maintenance
+```bash
+# Update to the latest version automatically
+./musu-crawl update
 ```
 
 ---
 
 ## 📂 Directory Structure
 - `/wiki/projects/{name}`: Project-specific knowledge silos.
-- `/wiki/index.json`: Master machine-readable knowledge map.
-- `/wiki/musu.bleve`: Keyword search database.
-- `/wiki/musu.vectors.json`: Semantic vector store.
+- `/wiki/projects/{name}/images`: Locally harvested visual assets.
+- `/wiki/index.json`: Global machine-readable knowledge map.
+- `/wiki/musu.bleve`: Local search database.
 
 ---
 
 ## 🤖 For AI Agents
-If you are an AI agent driving this tool, please refer to [**AGENTS.md**](./AGENTS.md) for detailed operational protocols and knowledge primitive combinations.
+AI Agents "driving" this tool should follow the [**AGENTS.md**](./AGENTS.md) protocol to utilize knowledge primitives and steer their own research personas.
 
 ---
 
 ## 📝 Roadmap & Status
-- [x] v0.1.0: Core Harvesters
-- [x] v0.2.0: Local Intelligence & Batching
 - [x] v0.3.0: AI Brain (Multi-Project & Galaxy)
-- [x] v0.4.0: Configuration & Secrets Management (Current)
-- [ ] v0.5.0: Direct Vector DB Cloud Export & OCR Integration
+- [x] v0.4.0: Configuration & Secrets
+- [x] v0.5.0: Multi-Modal (Images & OCR)
+- [x] v0.5.1: Production Hardening (Mutex & Encapsulation)
+- [ ] v0.6.0: Web-based Agent Control Panel & Cloud Vector Sync
