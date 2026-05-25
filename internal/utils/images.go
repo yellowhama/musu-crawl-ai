@@ -18,7 +18,7 @@ func DownloadAndRelinkImages(markdown string, imageDir string) string {
 
 	// Regex to find markdown image links: ![alt](url)
 	re := regexp.MustCompile(`!\[(.*?)\]\((.*?)\)`)
-	
+
 	client := &http.Client{Timeout: 30 * time.Second}
 
 	return re.ReplaceAllStringFunc(markdown, func(match string) string {

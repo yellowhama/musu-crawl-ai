@@ -24,20 +24,19 @@ var fetchCmd = &cobra.Command{
 
 		filePath, _ := cmd.Flags().GetString("file")
 		workers, _ := cmd.Flags().GetInt("workers")
-		
-		// If flag is default, use config value
+
 		lang, _ := cmd.Flags().GetString("lang")
 		if !cmd.Flags().Changed("lang") {
 			lang = conf.Language
 		}
-		
+
 		out, _ := cmd.Flags().GetString("out")
 		if !cmd.Flags().Changed("out") {
 			out = conf.WikiDir
 		}
 
 		compile, _ := cmd.Flags().GetBool("compile")
-		
+
 		model, _ := cmd.Flags().GetString("model")
 		if !cmd.Flags().Changed("model") {
 			model = conf.OllamaModel
@@ -70,37 +69,12 @@ func RunSingle(source, id, lang string, proc *processor.WikiProcessor, compile b
 	imageDir := filepath.Join(proc.BaseDir, "projects", proc.Project, "images")
 	text = utils.DownloadAndRelinkImages(text, imageDir)
 
-	sourceDir := source
-	if source == "yt" {
-		sourceDir = "youtube"
-	}
-	if source == "gh" {
-		sourceDir = "github"
-	}
-	if source == "arxiv" {
-		sourceDir = "papers"
-	}
-	if source == "hf" {
-		sourceDir = "huggingface"
-	}
-	if source == "x" {
-		sourceDir = "twitter"
-	}
-
-	safeID := id
-	if source == "gh" || source == "github" || source == "hf" || source == "huggingface" {
-		safeID = strings.ReplaceAll(id, "/", "_")
-	} else if source == "web" || source == "reddit" {
-		safeID = strings.ReplaceAll(strings.ReplaceAll(id, "https://", ""), "/", "_")
-		if len(safeID) > 100 {
-			safeID = safeID[:100]
-		}
-	}
-
-	fname, err := proc.SaveToWiki(sourceDir, safeID, title, text, tags, summary)
+	// Processor now handles ID normalization and source directory mapping internally
+	fname, err := proc.SaveToWiki(source, id, title, text, tags, summary)
 	if err != nil {
 		return "", err
 	}
+
 	fmt.Printf("✅ Saved [%s] to Wiki project '%s': %s (Tags: %s)\n", id, proc.Project, fname, strings.Join(tags, ", "))
 
 	// Autonmous Knowledge Compiling
@@ -110,6 +84,7 @@ func RunSingle(source, id, lang string, proc *processor.WikiProcessor, compile b
 		compiler, err := agent.NewCompiler(ollama, proc.BaseDir)
 		if err == nil {
 			defer compiler.Close()
+			sourceDir := proc.GetSourceDir(source)
 			fullPath := filepath.Join(proc.BaseDir, "projects", proc.Project, sourceDir, fname)
 			section, err := compiler.CompileDocument(fullPath, text, tags, summary)
 			if err == nil && section != "" {

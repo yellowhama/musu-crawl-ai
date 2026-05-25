@@ -2,6 +2,7 @@ package agent
 
 import (
 	"fmt"
+	"github.com/yellowhama/musu-crawl-ai/internal/utils"
 )
 
 type Analyst struct {
@@ -12,8 +13,14 @@ type Analyst struct {
 func (a *Analyst) Synthesize(query string, contents []string) (string, error) {
 	fullContext := ""
 	for i, c := range contents {
-		fullContext += fmt.Sprintf("--- Source %d ---\n%s\n\n", i+1, c)
-		if len(fullContext) > 8000 { // Simple context window limit
+		content := c
+		// If single source is huge, summarize it first locally
+		if len(content) > 4000 {
+			content = utils.Summarize(content, 10) // Get top 10 sentences
+		}
+
+		fullContext += fmt.Sprintf("--- Source %d ---\n%s\n\n", i+1, content)
+		if len(fullContext) > 12000 { // Increased limit but still guarded
 			break
 		}
 	}

@@ -21,7 +21,7 @@ func RunOCR(imagePath string) (string, error) {
 
 	// Use 'stdout' to get the result directly into a buffer
 	cmd := exec.Command("tesseract", imagePath, "stdout", "-l", "eng+kor")
-	
+
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out

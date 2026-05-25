@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/blevesearch/bleve/v2"
@@ -16,6 +17,7 @@ import (
 type WikiProcessor struct {
 	BaseDir string
 	Project string
+	mu      sync.Mutex // Protects file operations and indexing
 }
 
 type IndexEntry struct {
@@ -37,15 +39,21 @@ func NewWikiProcessor(baseDir string, project string) *WikiProcessor {
 	return &WikiProcessor{BaseDir: baseDir, Project: project}
 }
 
-func (p *WikiProcessor) SaveToWiki(source, id, title, content string, tags []string, summary string) (string, error) {
+func (p *WikiProcessor) SaveToWiki(source, rawID, title, content string, tags []string, summary string) (string, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	sourceDir := p.GetSourceDir(source)
+	safeID := p.NormalizeID(source, rawID)
+
 	// New path structure: wiki/projects/{project}/{source}/{file}
-	dir := filepath.Join(p.BaseDir, "projects", p.Project, source)
+	dir := filepath.Join(p.BaseDir, "projects", p.Project, sourceDir)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", err
 	}
 
 	safeTitle := sanitizeFilename(title)
-	filename := fmt.Sprintf("%s_%s.md", id, safeTitle)
+	filename := fmt.Sprintf("%s_%s.md", safeID, safeTitle)
 	if len(filename) > 200 {
 		filename = filename[:200] + ".md"
 	}
@@ -57,7 +65,7 @@ func (p *WikiProcessor) SaveToWiki(source, id, title, content string, tags []str
 	sb.WriteString(fmt.Sprintf("title: %q\n", title))
 	sb.WriteString(fmt.Sprintf("source: %s\n", source))
 	sb.WriteString(fmt.Sprintf("project: %s\n", p.Project))
-	sb.WriteString(fmt.Sprintf("id: %s\n", id))
+	sb.WriteString(fmt.Sprintf("id: %s\n", safeID))
 	sb.WriteString(fmt.Sprintf("date: %s\n", time.Now().Format("2006-01-02")))
 	if len(tags) > 0 {
 		sb.WriteString("tags:\n")
@@ -75,17 +83,58 @@ func (p *WikiProcessor) SaveToWiki(source, id, title, content string, tags []str
 		return "", err
 	}
 
-	// Update Index (Master README and JSON)
-	p.UpdateIndex()
+	// Update Index (Atomic within lock)
+	p.updateIndexWithEmbedderLocked(nil)
 
 	return filename, nil
 }
 
+func (p *WikiProcessor) GetSourceDir(source string) string {
+	source = strings.ToLower(source)
+	switch source {
+	case "yt", "youtube":
+		return "youtube"
+	case "gh", "github":
+		return "github"
+	case "arxiv":
+		return "papers"
+	case "hf", "huggingface":
+		return "huggingface"
+	case "x", "twitter":
+		return "twitter"
+	default:
+		return source
+	}
+}
+
+func (p *WikiProcessor) NormalizeID(source, id string) string {
+	source = strings.ToLower(source)
+	if source == "gh" || source == "github" || source == "hf" || source == "huggingface" {
+		return strings.ReplaceAll(id, "/", "_")
+	}
+	if source == "web" || source == "reddit" || source == "x" || source == "twitter" {
+		safe := strings.ReplaceAll(strings.ReplaceAll(id, "https://", ""), "/", "_")
+		if len(safe) > 100 {
+			return safe[:100]
+		}
+		return safe
+	}
+	return id
+}
+
 func (p *WikiProcessor) UpdateIndex() error {
-	return p.UpdateIndexWithEmbedder(nil)
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.updateIndexWithEmbedderLocked(nil)
 }
 
 func (p *WikiProcessor) UpdateIndexWithEmbedder(embedder func(string) ([]float64, error)) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.updateIndexWithEmbedderLocked(embedder)
+}
+
+func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]float64, error)) error {
 	readmeFile := filepath.Join(p.BaseDir, "README.md")
 	indexFile := filepath.Join(p.BaseDir, "index.json")
 	blevePath := filepath.Join(p.BaseDir, "musu.bleve")
@@ -177,7 +226,7 @@ func (p *WikiProcessor) UpdateIndexWithEmbedder(embedder func(string) ([]float64
 
 	// Save index.json
 	jsonData, _ := json.MarshalIndent(entries, "", "  ")
-	return os.WriteFile(indexFile, jsonData, 0644)
+	os.WriteFile(indexFile, jsonData, 0644)
 
 	// Save vectors
 	return vstore.Save(vectorFile)

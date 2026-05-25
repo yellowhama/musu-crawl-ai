@@ -46,7 +46,7 @@ var updateCmd = &cobra.Command{
 
 func GetLatestRelease(owner, repo string) (string, string, error) {
 	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
-	
+
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Get(apiURL)
 	if err != nil {
