@@ -46,7 +46,7 @@ func DownloadAndRelinkImages(markdown string, imageDir string, visionFunc func(s
 
 		// 2. Download if not already exists
 		if _, err := os.Stat(localPath); os.IsNotExist(err) {
-			fmt.Printf("   🖼️  Downloading image: %s\n", imgURL)
+			fmt.Printf("[SYSTEM] Downloading image: %s\n", imgURL)
 			resp, err := client.Get(imgURL)
 			if err != nil {
 				return match // Fallback to original
@@ -65,7 +65,7 @@ func DownloadAndRelinkImages(markdown string, imageDir string, visionFunc func(s
 		// 3. Vision Analysis (Optional)
 		caption := ""
 		if visionFunc != nil {
-			fmt.Printf("   👁️  Analyzing image: %s...\n", fileName)
+			fmt.Printf("[VISION] Analyzing: %s...\n", fileName)
 			if desc, err := visionFunc(localPath); err == nil {
 				caption = desc
 			}

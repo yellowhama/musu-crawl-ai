@@ -17,7 +17,8 @@ import (
 type WikiProcessor struct {
 	BaseDir string
 	Project string
-	mu      sync.Mutex // Protects file operations and indexing
+	mu      sync.Mutex   // Protects file operations and indexing
+	vstore  *VectorStore // Optimized: Persistent in-memory vector cache
 }
 
 type IndexEntry struct {
@@ -37,7 +38,17 @@ func NewWikiProcessor(baseDir string, project string) *WikiProcessor {
 	if project == "" {
 		project = "default"
 	}
-	return &WikiProcessor{BaseDir: baseDir, Project: project}
+	p := &WikiProcessor{
+		BaseDir: baseDir,
+		Project: project,
+		vstore:  NewVectorStore(),
+	}
+	
+	// Pre-load vectors if they exist
+	vectorFile := filepath.Join(baseDir, "musu.vectors.json")
+	p.vstore.Load(vectorFile)
+	
+	return p
 }
 
 // SaveToWiki is now a thin wrapper for SaveToWikiWithEmbedder with nil embedder
@@ -113,7 +124,7 @@ func (p *WikiProcessor) indexSingleDocumentLocked(entry IndexEntry, embedder fun
 	indexFile := filepath.Join(p.BaseDir, "index.json")
 	vectorFile := filepath.Join(p.BaseDir, "musu.vectors.json")
 
-	// 1. Bleve Index (Atomic Indexing)
+	// 1. Bleve Index
 	var idx bleve.Index
 	var err error
 	if _, statErr := os.Stat(blevePath); os.IsNotExist(statErr) {
@@ -127,23 +138,19 @@ func (p *WikiProcessor) indexSingleDocumentLocked(entry IndexEntry, embedder fun
 		idx.Close()
 	}
 
-	// 2. Vector Index (Optimized: Only save if changed)
+	// 2. Vector Index (Optimized: USES p.vstore CACHE)
 	if embedder != nil {
-		vstore := NewVectorStore()
-		vstore.Load(vectorFile)
-		
 		textToEmbed := entry.Summary
 		if textToEmbed == "" {
 			textToEmbed = entry.Title
 		}
 		if vec, err := embedder(textToEmbed); err == nil {
-			vstore.Embeddings[entry.ID] = vec
-			vstore.Save(vectorFile)
+			p.vstore.Embeddings[entry.ID] = vec
+			p.vstore.Save(vectorFile)
 		}
 	}
 
-	// 3. JSON Index (Optimized: Append/Merge without full rewrite if possible - 
-	// but JSON requires full rewrite for valid structure, so we just ensure it's correct)
+	// 3. JSON Index
 	var entries []IndexEntry
 	if data, err := os.ReadFile(indexFile); err == nil {
 		json.Unmarshal(data, &entries)
@@ -218,9 +225,7 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 	blevePath := filepath.Join(p.BaseDir, "musu.bleve")
 	vectorFile := filepath.Join(p.BaseDir, "musu.vectors.json")
 
-	vstore := NewVectorStore()
-	vstore.Load(vectorFile)
-
+	// Bleve setup
 	var index bleve.Index
 	var err error
 	if _, statErr := os.Stat(blevePath); os.IsNotExist(statErr) {
@@ -262,12 +267,12 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 			index.Index(entry.ID, entry)
 
 			if embedder != nil {
-				if _, exists := vstore.Embeddings[entry.ID]; !exists {
+				if _, exists := p.vstore.Embeddings[entry.ID]; !exists {
 					fmt.Printf("🧠 Generating embedding for %s...\n", entry.ID)
 					textToEmbed := entry.Summary
 					if textToEmbed == "" { textToEmbed = entry.Title }
 					vec, err := embedder(textToEmbed)
-					if err == nil { vstore.Embeddings[entry.ID] = vec }
+					if err == nil { p.vstore.Embeddings[entry.ID] = vec }
 				}
 			}
 			sb.WriteString(fmt.Sprintf("* [%s](%s) [%s] (%s)\n", entry.Title, entry.Path, entry.Project, entry.Source))
@@ -282,7 +287,7 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 	os.WriteFile(readmeFile, []byte(sb.String()), 0644)
 	jsonData, _ := json.MarshalIndent(entries, "", "  ")
 	os.WriteFile(indexFile, jsonData, 0644)
-	return vstore.Save(vectorFile)
+	return p.vstore.Save(vectorFile)
 }
 
 func (p *WikiProcessor) ParseFrontmatterWithContent(path string, relPath string) (*IndexEntry, string, error) {
