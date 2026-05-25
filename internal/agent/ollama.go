@@ -15,13 +15,22 @@ type OllamaClient struct {
 	BaseURL     string
 	Model       string
 	VisionModel string
+	httpClient  *http.Client // Optimized: Reusable client pool
 }
 
 func NewOllamaClient(model string) *OllamaClient {
 	return &OllamaClient{
 		BaseURL:     "http://localhost:11434/api/generate",
 		Model:       model,
-		VisionModel: "llava", // Default vision model
+		VisionModel: "llava",
+		httpClient: &http.Client{
+			Timeout: 120 * time.Second, // Long timeout for heavy vision/reasoning tasks
+			Transport: &http.Transport{
+				MaxIdleConns:        100,
+				IdleConnTimeout:     90 * time.Second,
+				MaxIdleConnsPerHost: 20,
+			},
+		},
 	}
 }
 
@@ -30,7 +39,7 @@ type OllamaRequest struct {
 	Prompt string   `json:"prompt"`
 	Stream bool     `json:"stream"`
 	Format string   `json:"format,omitempty"`
-	Images []string `json:"images,omitempty"` // Base64 encoded images
+	Images []string `json:"images,omitempty"`
 }
 
 type OllamaResponse struct {
@@ -63,8 +72,7 @@ func (c *OllamaClient) Ask(prompt string, jsonFormat bool) (string, error) {
 
 	jsonData, _ := json.Marshal(reqBody)
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Post(c.BaseURL, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := c.httpClient.Post(c.BaseURL, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", fmt.Errorf("ollama connection failed: %v. if you are an AI agent, you should perform this reasoning task yourself using the provided data", err)
 	}
@@ -91,9 +99,8 @@ func (c *OllamaClient) Embed(text string) ([]float64, error) {
 
 	jsonData, _ := json.Marshal(reqBody)
 	url := "http://localhost:11434/api/embeddings"
-	
-	client := &http.Client{Timeout: 60 * time.Second}
-	resp, err := client.Post(url, "application/json", bytes.NewBuffer(jsonData))
+
+	resp, err := c.httpClient.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("ollama embed failed: %v", err)
 	}
@@ -129,8 +136,7 @@ func (c *OllamaClient) DescribeImage(imagePath string) (string, error) {
 
 	jsonData, _ := json.Marshal(reqBody)
 
-	client := &http.Client{Timeout: 60 * time.Second}
-	resp, err := client.Post(c.BaseURL, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := c.httpClient.Post(c.BaseURL, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", fmt.Errorf("ollama vision failed: %v", err)
 	}

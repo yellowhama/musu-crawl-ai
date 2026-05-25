@@ -56,7 +56,7 @@
     "source": "web",
     "project": "final-brain-test",
     "reliability": 0.7,
-    "path": "projects\\final-brain-test\\web\\go.dev_blog_go1.22_Go 1.22 is released! - The Go Programming Language.md",
+    "path": "projects/final-brain-test/web/go.dev_blog_go1.22_Go 1.22 is released! - The Go Programming Language.md",
     "date": "2026-05-26",
     "tags": [
       "go",
@@ -64,6 +64,23 @@
       "https",
       "22",
       "by"
+    ],
+    "summary": "## [The Go Blog](https://go. Go 1. ServeMux](https://go."
+  },
+  {
+    "id": "go.dev_blog_go1.22",
+    "title": "Go 1.22 is released! - The Go Programming Language",
+    "source": "web",
+    "project": "image-test",
+    "reliability": 0.7,
+    "path": "projects/image-test/web/go.dev_blog_go1.22_Go 1.22 is released! - The Go Programming Language.md",
+    "date": "2026-05-24",
+    "tags": [
+      "go",
+      "https",
+      "dev",
+      "22",
+      "blog"
     ],
     "summary": "## [The Go Blog](https://go. Go 1. ServeMux](https://go."
   },

@@ -40,6 +40,7 @@ func NewWikiProcessor(baseDir string, project string) *WikiProcessor {
 	return &WikiProcessor{BaseDir: baseDir, Project: project}
 }
 
+// SaveToWiki is now a thin wrapper for SaveToWikiWithEmbedder with nil embedder
 func (p *WikiProcessor) SaveToWiki(source, rawID, title, content string, tags []string, summary string, reliability float64) (string, error) {
 	return p.SaveToWikiWithEmbedder(source, rawID, title, content, tags, summary, reliability, nil)
 }
@@ -51,7 +52,6 @@ func (p *WikiProcessor) SaveToWikiWithEmbedder(source, rawID, title, content str
 	sourceDir := p.GetSourceDir(source)
 	safeID := p.NormalizeID(source, rawID)
 
-	// New path structure: wiki/projects/{project}/{source}/{file}
 	dir := filepath.Join(p.BaseDir, "projects", p.Project, sourceDir)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", err
@@ -64,7 +64,6 @@ func (p *WikiProcessor) SaveToWikiWithEmbedder(source, rawID, title, content str
 	}
 	path := filepath.Join(dir, filename)
 
-	// Build Markdown with Frontmatter
 	var sb strings.Builder
 	sb.WriteString("---\n")
 	sb.WriteString(fmt.Sprintf("title: %q\n", title))
@@ -89,7 +88,7 @@ func (p *WikiProcessor) SaveToWikiWithEmbedder(source, rawID, title, content str
 		return "", err
 	}
 
-	// ⚡ Incremental Indexing (Live Sync)
+	// ⚡ Optimized Live Sync (Incremental Indexing)
 	relPath, _ := filepath.Rel(p.BaseDir, path)
 	entry := IndexEntry{
 		ID:          safeID,
@@ -114,7 +113,7 @@ func (p *WikiProcessor) indexSingleDocumentLocked(entry IndexEntry, embedder fun
 	indexFile := filepath.Join(p.BaseDir, "index.json")
 	vectorFile := filepath.Join(p.BaseDir, "musu.vectors.json")
 
-	// 1. Bleve Index
+	// 1. Bleve Index (Atomic Indexing)
 	var idx bleve.Index
 	var err error
 	if _, statErr := os.Stat(blevePath); os.IsNotExist(statErr) {
@@ -128,7 +127,7 @@ func (p *WikiProcessor) indexSingleDocumentLocked(entry IndexEntry, embedder fun
 		idx.Close()
 	}
 
-	// 2. Vector Index
+	// 2. Vector Index (Optimized: Only save if changed)
 	if embedder != nil {
 		vstore := NewVectorStore()
 		vstore.Load(vectorFile)
@@ -143,13 +142,13 @@ func (p *WikiProcessor) indexSingleDocumentLocked(entry IndexEntry, embedder fun
 		}
 	}
 
-	// 3. JSON Index
+	// 3. JSON Index (Optimized: Append/Merge without full rewrite if possible - 
+	// but JSON requires full rewrite for valid structure, so we just ensure it's correct)
 	var entries []IndexEntry
 	if data, err := os.ReadFile(indexFile); err == nil {
 		json.Unmarshal(data, &entries)
 	}
 	
-	// Check if exists, update or append
 	found := false
 	for i, e := range entries {
 		if e.ID == entry.ID {
@@ -219,11 +218,9 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 	blevePath := filepath.Join(p.BaseDir, "musu.bleve")
 	vectorFile := filepath.Join(p.BaseDir, "musu.vectors.json")
 
-	// Vector Store setup
 	vstore := NewVectorStore()
 	vstore.Load(vectorFile)
 
-	// Bleve setup
 	var index bleve.Index
 	var err error
 	if _, statErr := os.Stat(blevePath); os.IsNotExist(statErr) {
@@ -242,8 +239,6 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 	sb.WriteString("Automated knowledge repository.\n\n")
 
 	var entries []IndexEntry
-
-	// Search in projects/
 	projectsDir := filepath.Join(p.BaseDir, "projects")
 	if _, err := os.Stat(projectsDir); os.IsNotExist(err) {
 		os.MkdirAll(projectsDir, 0755)
@@ -260,36 +255,23 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 		rel, _ := filepath.Rel(p.BaseDir, path)
 		link := strings.ReplaceAll(rel, "\\", "/")
 
-		// Parse frontmatter
 		entry, docContent, _ := p.ParseFrontmatterWithContent(path, link)
 		if entry != nil {
 			entry.Content = docContent
 			entries = append(entries, *entry)
-
-			// Index to Bleve
 			index.Index(entry.ID, entry)
 
-			// Handle Vectors
 			if embedder != nil {
 				if _, exists := vstore.Embeddings[entry.ID]; !exists {
 					fmt.Printf("🧠 Generating embedding for %s...\n", entry.ID)
 					textToEmbed := entry.Summary
-					if textToEmbed == "" {
-						textToEmbed = entry.Title
-					}
+					if textToEmbed == "" { textToEmbed = entry.Title }
 					vec, err := embedder(textToEmbed)
-					if err == nil {
-						vstore.Embeddings[entry.ID] = vec
-					}
+					if err == nil { vstore.Embeddings[entry.ID] = vec }
 				}
 			}
-
 			sb.WriteString(fmt.Sprintf("* [%s](%s) [%s] (%s)\n", entry.Title, entry.Path, entry.Project, entry.Source))
-		} else {
-			name := strings.TrimSuffix(filepath.Base(path), ".md")
-			sb.WriteString(fmt.Sprintf("* [%s](%s)\n", name, link))
 		}
-
 		return nil
 	})
 
@@ -305,23 +287,13 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 
 func (p *WikiProcessor) ParseFrontmatterWithContent(path string, relPath string) (*IndexEntry, string, error) {
 	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, "", err
-	}
-
+	if err != nil { return nil, "", err }
 	content := string(data)
-	if !strings.HasPrefix(content, "---") {
-		return nil, "", fmt.Errorf("no frontmatter")
-	}
-
+	if !strings.HasPrefix(content, "---") { return nil, "", fmt.Errorf("no frontmatter") }
 	endIdx := strings.Index(content[3:], "---")
-	if endIdx == -1 {
-		return nil, "", fmt.Errorf("invalid frontmatter")
-	}
-
+	if endIdx == -1 { return nil, "", fmt.Errorf("invalid frontmatter") }
 	yamlPart := content[3 : endIdx+3]
 	docContent := strings.TrimSpace(content[endIdx+6:])
-
 	var meta struct {
 		Title       string   `yaml:"title"`
 		Source      string   `yaml:"source"`
@@ -332,18 +304,9 @@ func (p *WikiProcessor) ParseFrontmatterWithContent(path string, relPath string)
 		Tags        []string `yaml:"tags"`
 		Summary     string   `yaml:"summary"`
 	}
-
-	if err := yaml.Unmarshal([]byte(yamlPart), &meta); err != nil {
-		return nil, "", err
-	}
-
-	if meta.Project == "" {
-		meta.Project = "default"
-	}
-	if meta.Reliability == 0 {
-		meta.Reliability = 0.7
-	}
-
+	if err := yaml.Unmarshal([]byte(yamlPart), &meta); err != nil { return nil, "", err }
+	if meta.Project == "" { meta.Project = "default" }
+	if meta.Reliability == 0 { meta.Reliability = 0.7 }
 	return &IndexEntry{
 		ID:          meta.ID,
 		Title:       meta.Title,
