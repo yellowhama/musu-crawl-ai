@@ -1,44 +1,39 @@
-# Master Plan: musu-crawl-ai Development (FINAL STATUS: V0.7.2 PEAK RELEASE)
+# Master Plan: musu-crawl-ai Development (STATUS: V0.8.0 AGENT-NATIVE RELEASE)
 
 ## 🎯 Project Goal
-A high-performance, autonomous knowledge harvester and LLM Wiki generator. v0.7.2 represents the absolute peak of the current architecture, featuring localized vision intelligence, live-sync indexing, and production-grade resource management.
+A high-performance, autonomous knowledge harvester and LLM Wiki generator. v0.8.0 achieves **"Agent-Native"** status, providing a seamless bridge for AI agents like Claude and Gemini to discover and use research tools.
 
 ## ✅ Completed Milestones
 
 ### Phase 1-9: The Harvester Engine
-- [x] **Universal Fetchers:** YouTube, GitHub, Arxiv (Layout preserved), Reddit, HF, Web.
-- [x] **PDF OCR:** Tesseract fallback for scanned documents.
+- [x] **Universal Fetchers:** YouTube, GitHub, Arxiv, Reddit, HF, Web.
+- [x] **Robustness:** Mutex thread-safety, PDF OCR fallback.
 
-### Phase 10-24: Intelligence & Mindset
+### Phase 10-26: Intelligence, Vision & Live Sync
 - [x] **Recursive Research:** Multi-agent loops (Planner -> Searcher -> Harvester -> Analyst).
-- [x] **Researcher Mindset:** Socratic planning, reliability scoring, and contradiction detection.
-- [x] **LLM Wiki Pattern:** Local summarization, auto-tagging, and compiler-driven cross-linking.
+- [x] **Vision Intelligence:** Local **LLaVA** describing images.
+- [x] **Live Knowledge Sync:** O(1) incremental indexing for near-instant search.
 
-### Phase 25-26: Cognitive Completion & Hardening
-- [x] **Vision Intelligence:** Local **LLaVA** integration to "see" and describe harvested images.
-- [x] **Live Knowledge Sync:** O(1) incremental indexing for near-instant search availability.
-- [x] **Peak Performance (v0.7.2):** Persistent in-memory **VectorStore caching** to eliminate I/O bottlenecks.
-- [x] **Resource Hardening:** Optimized HTTP connection pooling and unified thread-safe pipelines.
+### Phase 27: AX Optimization (v0.8.0 New)
+- [x] **Machine-Readable Layer:** Global `--json` flag for deterministic, noise-free agent parsing.
+- [x] **Model Context Protocol (MCP):** Stdio-based MCP server exposing `fetch`, `search`, and `research` as native tools.
+- [x] **Agentic Error Recovery:** Structured JSON errors with `agent_actionable_fix` tips.
+- [x] **Architecture Refactor:** Moved high-level research actions into a unified `agent.Orchestrator` to support multi-interface execution.
 
-## 🧐 Final Qualitative Evaluation (v0.7.2)
+## 🧐 Final Qualitative Evaluation (v0.8.0)
 
-### 1. Performance & Scalability
+### 1. Agent Experience (AX)
 - **Verdict: [PASS - EXCELLENT]**
-- The transition to in-memory vector caching ensures that the tool remains blazing fast even as the knowledge base grows to thousands of documents. I/O overhead is now minimized to strictly necessary disk persistence.
+- The tool no longer requires agents to "hack" terminal output. With `--json` and MCP, agents can interact with the knowledge base with the same precision as a human using a GUI.
 
-### 2. Operational Reliability
-- **Verdict: [PASS - EXCELLENT]**
-- With thread-safe indexing and pooled HTTP clients, the system is now "indestructible" under standard high-concurrency research workloads.
+### 2. Native Integration
+- **Verdict: [PASS]**
+- Implementing MCP makes Musu a first-class citizen in the modern AI ecosystem. It can be added to Claude Desktop or Cursor with a single line of config.
 
-### 3. Agent Interoperability
-- **Verdict: [PASS - EXCELLENT]**
-- The clean system logs and comprehensive **`AGENTS.md`** make this the premier choice for autonomous AI agents looking for a reliable data supply chain.
-
-## 🚀 Future Vision (The v0.8.0+ Horizon)
-1. **Cloud Vector Sync:** Commands to push the local brain to Pinecone/Weaviate.
-2. **Interactive Agent Dashboard:** Trigger and monitor research cycles from the web UI.
-3. **MQL (Musu Query Language):** A DSL for complex relational knowledge extraction.
+## 🚀 Future Vision (v0.9.0 Horizon)
+1. **Dynamic Reranking:** Integrate cross-encoders for superior search relevance.
+2. **Cloud Sync:** Synchronize local knowledge galaxys across multiple devices.
 
 ---
 **Build Date:** 2026-05-26
-**Status:** 💎 PEAK PRODUCTION READY
+**Status:** 🤖 AGENT NATIVE READY

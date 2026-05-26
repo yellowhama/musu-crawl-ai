@@ -3,18 +3,25 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/yellowhama/musu-crawl-ai/internal/utils"
 )
 
-const Version = "v0.7.2"
+const Version = "v0.8.0"
 
 var rootCmd = &cobra.Command{
-	Use:     "musu-crawl-ai",
-	Short:   "AI-Ready Knowledge Harvester & Wiki Generator",
-	Long:    `A high-performance crawler to fetch and organize content for AI.`,
-	Version: Version,
+	Use:           "musu-crawl-ai",
+	Short:         "AI-Ready Knowledge Harvester & Wiki Generator",
+	Long:          `A high-performance crawler to fetch and organize content for AI.`,
+	Version:       Version,
+	SilenceErrors: true,
+	SilenceUsage:  true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		viper.BindPFlag("json", cmd.Root().PersistentFlags().Lookup("json"))
+		
 		// Silent background check for updates
 		if cmd.Name() != "update" && cmd.Name() != "help" {
 			go checkNewVersion()
@@ -31,9 +38,18 @@ func checkNewVersion() {
 }
 
 func Execute() error {
-	return rootCmd.Execute()
+	err := rootCmd.Execute()
+	if err != nil {
+		fix := ""
+		if strings.Contains(err.Error(), "arg(s)") {
+			fix = "Check 'musu-crawl [command] --help' for argument requirements."
+		}
+		utils.PrintError(err, fix)
+		os.Exit(1)
+	}
+	return nil
 }
 
 func init() {
-	// Root flags if needed
+	rootCmd.PersistentFlags().Bool("json", false, "Output in machine-readable JSON format")
 }
