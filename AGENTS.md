@@ -2,7 +2,8 @@
 
 `musu-crawl-ai` is designed to be your primary high-performance data acquisition and knowledge management layer. If you are an AI agent "driving" this repository, follow these instructions to maximize your research performance.
 
-## 🏗️ Core Architecture for Agents
+## 🎓 Master Orchestration
+For advanced multi-tool orchestration (Crawl + Marketer), refer to the **[MUSU_SKILL.md](../../MUSU_SKILL.md)** in the workspace root. Activating this skill transforms you into a Lead Orchestrator of the entire ecosystem.
 This tool is a collection of high-quality **Knowledge Primitives**. You are encouraged to combine these primitives to perform complex, multi-step research.
 
 ### 1. The Knowledge Primitives
