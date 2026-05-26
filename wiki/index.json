@@ -51,6 +51,23 @@
     ]
   },
   {
+    "id": "example.com",
+    "title": "Example Domain",
+    "source": "web",
+    "project": "ax-test",
+    "reliability": 0.7,
+    "path": "projects/ax-test/web/example.com_Example Domain.md",
+    "date": "2026-05-27",
+    "tags": [
+      "use",
+      "documentation",
+      "domains",
+      "examples",
+      "domain"
+    ],
+    "summary": "This domain is for use in documentation examples without needing permission.  Avoid use in operations. \n\n[Learn more](https://iana."
+  },
+  {
     "id": "go.dev_blog_go1.22",
     "title": "Go 1.22 is released! - The Go Programming Language",
     "source": "web",
@@ -183,22 +200,5 @@
       "up",
       "tell"
     ]
-  },
-  {
-    "id": "example.com",
-    "title": "Example Domain",
-    "source": "web",
-    "project": "ax-test",
-    "reliability": 0.7,
-    "path": "projects\\ax-test\\web\\example.com_Example Domain.md",
-    "date": "2026-05-27",
-    "tags": [
-      "use",
-      "documentation",
-      "domains",
-      "examples",
-      "domain"
-    ],
-    "summary": "This domain is for use in documentation examples without needing permission.  Avoid use in operations. \n\n[Learn more](https://iana."
   }
 ]
