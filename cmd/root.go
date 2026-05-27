@@ -47,6 +47,9 @@ func Execute() error {
 		if strings.Contains(err.Error(), "arg(s)") {
 			fix = "Check 'musu-crawl [command] --help' for argument requirements."
 		}
+		if fix == "" {
+			fix = "Check 'musu-crawl [command] --help' for command usage and required flags."
+		}
 		utils.PrintError(err, fix)
 		os.Exit(1)
 	}
@@ -58,6 +61,7 @@ func init() {
 	rootCmd.PersistentFlags().String("ai-provider", "ollama", "AI provider (ollama, sglang, openai)")
 	rootCmd.PersistentFlags().String("ai-url", "http://localhost:11434/v1", "AI base URL")
 	
+	viper.BindPFlag("json", rootCmd.PersistentFlags().Lookup("json"))
 	viper.BindPFlag("ai_provider", rootCmd.PersistentFlags().Lookup("ai-provider"))
 	viper.BindPFlag("ai_url", rootCmd.PersistentFlags().Lookup("ai-url"))
 }

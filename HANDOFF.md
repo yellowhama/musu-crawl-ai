@@ -15,6 +15,7 @@
 - added `doctor --fix`
 - clarified static setup metadata via `--capability-source`
 - added ecosystem workflow docs and machine-readable preflight guidance
+- `init` now writes `config.toml`, `PROMPT.md`, and `NEXT_STEPS.md` under each project and returns bootstrap metadata in `--json`
 
 ## Operator Flow
 1. `musu-crawl init --out ./wiki --project <name>`
@@ -25,7 +26,7 @@
 
 ## Known Constraints
 - `--capability-source` is static metadata, not a live reachability probe
-- `init` still checks the default localhost AI port instead of respecting `--ai-url`
+- `init` and `doctor` now respect the configured `--ai-url`, but they still only validate endpoint reachability, not model compatibility
 - very large bulk fetches still pay repeated index/vector rewrite cost
 
 ## Key Files
@@ -35,3 +36,6 @@
 - `internal/harvester/*`: source-specific fetchers
 - `internal/processor/*`: wiki/index/vector processing
 - `internal/agent/*`: orchestration and research logic
+- `wiki/projects/<project>/config.toml`
+- `wiki/projects/<project>/PROMPT.md`
+- `wiki/projects/<project>/NEXT_STEPS.md`

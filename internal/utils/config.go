@@ -69,10 +69,19 @@ func LoadConfig(project string) (*Config, error) {
 		Language:   v.GetString("language"),
 		WikiDir:    v.GetString("out"),
 		AIModel:    v.GetString("model"),
-		AIProvider: v.GetString("ai_provider"),
-		AIBaseURL:  v.GetString("ai_url"),
+		AIProvider: firstNonEmpty(viper.GetString("ai_provider"), v.GetString("ai_provider")),
+		AIBaseURL:  firstNonEmpty(viper.GetString("ai_url"), v.GetString("ai_url")),
 		Project:    project,
 	}, nil
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 // GetSecret retrieves a sensitive value from environment variables

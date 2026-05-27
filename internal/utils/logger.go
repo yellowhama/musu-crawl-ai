@@ -10,10 +10,10 @@ import (
 
 // JSONResponse defines the standard machine-readable output format.
 type JSONResponse struct {
-	Status       string      `json:"status"`
-	Message      string      `json:"message,omitempty"`
-	Data         interface{} `json:"data,omitempty"`
-	ActionFix    string      `json:"agent_actionable_fix,omitempty"`
+	Status        string      `json:"status"`
+	Message       string      `json:"message,omitempty"`
+	Data          interface{} `json:"data,omitempty"`
+	ActionableFix string      `json:"actionable_fix,omitempty"`
 }
 
 // PrintInfo prints informational messages to stderr (to keep stdout clean for JSON).
@@ -36,13 +36,7 @@ func PrintSuccess(msg string, a ...interface{}) {
 // PrintError prints error messages.
 func PrintError(err error, fix string) {
 	if viper.GetBool("json") {
-		resp := JSONResponse{
-			Status:    "error",
-			Message:   err.Error(),
-			ActionFix: fix,
-		}
-		data, _ := json.MarshalIndent(resp, "", "  ")
-		fmt.Println(string(data))
+		PrintJSONError(err.Error(), nil, fix)
 		return
 	}
 	fmt.Fprintf(os.Stderr, "❌ Error: %v\n", err)
@@ -60,6 +54,20 @@ func PrintJSON(message string, data interface{}) {
 		Status:  "success",
 		Message: message,
 		Data:    data,
+	}
+	encoded, _ := json.MarshalIndent(resp, "", "  ")
+	fmt.Println(string(encoded))
+}
+
+func PrintJSONError(message string, data interface{}, actionableFix string) {
+	if !viper.GetBool("json") {
+		return
+	}
+	resp := JSONResponse{
+		Status:        "error",
+		Message:       message,
+		Data:          data,
+		ActionableFix: actionableFix,
 	}
 	encoded, _ := json.MarshalIndent(resp, "", "  ")
 	fmt.Println(string(encoded))

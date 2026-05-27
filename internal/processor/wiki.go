@@ -198,7 +198,13 @@ func (p *WikiProcessor) NormalizeID(source, id string) string {
 		return strings.ReplaceAll(id, "/", "_")
 	}
 	if source == "web" || source == "reddit" || source == "x" || source == "twitter" {
-		safe := strings.ReplaceAll(strings.ReplaceAll(id, "https://", ""), "/", "_")
+		safe := strings.ReplaceAll(id, "https://", "")
+		safe = strings.ReplaceAll(safe, "http://", "")
+		safe = strings.ReplaceAll(safe, "/", "_")
+		safe = strings.ReplaceAll(safe, ":", "_")
+		safe = strings.ReplaceAll(safe, "?", "_")
+		safe = strings.ReplaceAll(safe, "&", "_")
+		safe = strings.ReplaceAll(safe, "=", "_")
 		if len(safe) > 100 {
 			return safe[:100]
 		}

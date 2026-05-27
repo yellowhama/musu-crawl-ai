@@ -38,14 +38,14 @@
 - [x] capability metadata output for setup-time automation
 
 ## Known Constraints
-- `init` still probes the default local AI port instead of the configured `--ai-url`
+- `init` and `doctor` now probe the configured AI endpoint, but they still do not validate per-model compatibility beyond simple reachability
 - source capability metadata is not a live readiness probe
 - bulk crawl indexing still rewrites index/vector artifacts repeatedly and is not yet optimized for large N
 
 ## Next Work
-1. Make `init` use the configured AI endpoint.
-2. Add optional live source probes for credentials or network reachability.
-3. Separate static capability metadata from live doctor logic more cleanly.
+1. Add optional live source probes for credentials or network reachability.
+2. Separate static capability metadata from live doctor logic more cleanly.
+3. Reduce repeated index/vector rewrite cost for large bulk crawls.
 
 ---
 **Build Date:** 2026-05-27

@@ -22,7 +22,9 @@
 - `wiki/index.json`
 - `wiki/musu.bleve`
 - `wiki/projects/<project>/...`
+- `wiki/projects/<project>/config.toml`
 - `wiki/projects/<project>/PROMPT.md`
+- `wiki/projects/<project>/NEXT_STEPS.md`
 
 ## Docs
 - `README.md`: operator quick start

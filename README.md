@@ -11,7 +11,7 @@
 ### 🤖 Agent-Native Interface (v0.8.0)
 - **MCP Server:** Native integration with Claude Desktop and Cursor. Use Musu as a built-in tool.
 - **Machine-Readable:** Global `--json` mode for deterministic, noise-free output.
-- **Agentic Recovery:** Error messages include `agent_actionable_fix` tips to guide LLMs.
+- **Agentic Recovery:** Error messages include `actionable_fix` tips to guide LLMs.
 
 ### 🧠 Intelligence & Research
 - **Researcher Mindset:** Socratic planning, hypothesis testing, and contradiction detection.
@@ -65,6 +65,15 @@ Add the following to your `claude_desktop_config.json`:
 `doctor` also supports `--json`, which is useful when another agent or CI job needs deterministic preflight output.
 `doctor --fix` can safely create a missing local wiki scaffold before longer runs.
 Use `doctor --capability-source web --capability-source gh --capability-source yt` to get a machine-readable static source capability matrix during setup. This is capability metadata, not a live credential or reachability probe.
+`init --json` now returns the wiki/project scaffold paths, AI reachability snapshot, and suggested next commands so bootstrap can be chained automatically.
+JSON mode now uses the same top-level envelope as the other Musu tools: `status`, `message`, `data`, `actionable_fix`.
+`actionable_fix` is now assembled from the specific failing checks, so missing wiki/project scaffolds and unreachable AI endpoints point to different recovery steps.
+The command surface now has local smoke coverage for `fetch web ...` and `search ...`, so bootstrap and retrieval paths are verified without relying on live external services.
+For a real endpoint-backed verification, set `MUSU_CRAWL_INTEGRATION_AI_URL` and run `go test -tags integration ./cmd`, or use `scripts/run-real-integration.ps1`.
+Set `MUSU_CRAWL_INTEGRATION_EMBED_MODEL` when the reachable endpoint exposes an embedding model other than the default `nomic-embed-text`.
+The runner auto-probes `OLLAMA_HOST`, `127.0.0.1:11434`, and `localhost:11434`, checks both `/v1/models` and Ollama `/api/tags`, and prints explicit diagnostics when no reachable endpoint exists.
+Use `-Json -ProbeOnly` when another agent or CI step needs machine-readable integration readiness output without actually running the integration-tag tests.
+The JSON doctor now emits `issue_codes` such as `ollama_host_unspecified_bind_address`, `ollama_not_installed`, `localhost_probe_timeout`, and `missing_required_model`.
 
 ---
 
