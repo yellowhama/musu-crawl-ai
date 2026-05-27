@@ -10,34 +10,47 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func bootstrapProjectDirs(out, project string, verbose bool) error {
+	dirs := []string{
+		out,
+		filepath.Join(out, "projects"),
+		filepath.Join(out, "projects", project),
+		filepath.Join(out, "projects", project, "youtube"),
+		filepath.Join(out, "projects", project, "github"),
+		filepath.Join(out, "projects", project, "papers"),
+		filepath.Join(out, "projects", project, "web"),
+		filepath.Join(out, "projects", project, "twitter"),
+		filepath.Join(out, "projects", project, "huggingface"),
+		filepath.Join(out, "projects", project, "reddit"),
+	}
+
+	for _, d := range dirs {
+		if err := os.MkdirAll(d, 0755); err != nil {
+			return fmt.Errorf("create directory %s: %w", d, err)
+		}
+		if verbose {
+			fmt.Printf("✅ Directory ready: %s\n", d)
+		}
+	}
+	return nil
+}
+
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize the Wiki directory and check environment",
 	Run: func(cmd *cobra.Command, args []string) {
 		out, _ := cmd.Flags().GetString("out")
+		project, _ := cmd.Flags().GetString("project")
+		if project == "" {
+			project = "default"
+		}
 
 		fmt.Printf("🚀 Initializing musu-crawl-ai (Version %s)...\n", Version)
 
 		// 1. Create directory structure
-		dirs := []string{
-			out,
-			filepath.Join(out, "projects"),
-			filepath.Join(out, "projects", "default"),
-			filepath.Join(out, "projects", "default", "youtube"),
-			filepath.Join(out, "projects", "default", "github"),
-			filepath.Join(out, "projects", "default", "papers"),
-			filepath.Join(out, "projects", "default", "web"),
-			filepath.Join(out, "projects", "default", "twitter"),
-			filepath.Join(out, "projects", "default", "huggingface"),
-			filepath.Join(out, "projects", "default", "reddit"),
-		}
-
-		for _, d := range dirs {
-			if err := os.MkdirAll(d, 0755); err != nil {
-				fmt.Printf("❌ Failed to create directory %s: %v\n", d, err)
-			} else {
-				fmt.Printf("✅ Directory ready: %s\n", d)
-			}
+		if err := bootstrapProjectDirs(out, project, true); err != nil {
+			fmt.Printf("❌ Failed to initialize wiki structure: %v\n", err)
+			return
 		}
 
 		// 2. Check for AI Service
@@ -66,5 +79,6 @@ var initCmd = &cobra.Command{
 
 func init() {
 	initCmd.Flags().String("out", "./wiki", "Wiki directory to initialize")
+	initCmd.Flags().String("project", "default", "Project directory to initialize under wiki/projects")
 	rootCmd.AddCommand(initCmd)
 }

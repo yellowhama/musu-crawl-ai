@@ -40,6 +40,9 @@ func checkNewVersion() {
 func Execute() error {
 	err := rootCmd.Execute()
 	if err != nil {
+		if viper.GetBool("json") && err.Error() == "doctor found blocking issues" {
+			os.Exit(1)
+		}
 		fix := ""
 		if strings.Contains(err.Error(), "arg(s)") {
 			fix = "Check 'musu-crawl [command] --help' for argument requirements."

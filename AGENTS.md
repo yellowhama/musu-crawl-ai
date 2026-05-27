@@ -10,6 +10,7 @@ This tool is a collection of high-quality **Knowledge Primitives**. You are enco
 - **`fetch [source] [url]`**: Your primary tool to bypass blocks, clean HTML, and parse PDFs (including OCR for image-based PDFs if Tesseract is installed). Outputs clean Markdown with YAML.
 - **`index`**: Re-generates the global `index.json` knowledge map and refreshes the Bleve/Vector search indexes.
 - **`search [query]`**: High-performance search. Use `--semantic` for meaning-based retrieval if Ollama embeddings are available.
+- **`doctor`**: Preflight the local wiki, index, project directory, and AI endpoint. Use `--json` for deterministic parsing, `--fix` for safe scaffold creation, and `--capability-source` when an agent needs static setup metadata for a source family.
 
 ## 🏎️ How to "Drive" this tool as an Agent
 
@@ -31,6 +32,7 @@ This tool is a collection of high-quality **Knowledge Primitives**. You are enco
 
 ## 🛑 Critical Mandates for Agents
 - **Self-Healing:** If a command fails (e.g., missing Tesseract or Ollama), gracefully switch to your own logic (manual analysis or text-only extraction) and notify the user.
+- **Preflight Honesty:** Treat `--capability-source` as static metadata, not as proof that an external source is reachable or authenticated.
 - **Project Scoping:** Always use the `--project` flag to avoid context contamination.
 - **Thread-Safe Ops:** Rely on the tool's built-in locking; do not worry about concurrent fetches corrupting the index.
 - **Validation:** Always verify the structure of YAML Frontmatter before writing manual modifications to ensure `index.json` remains parsable.

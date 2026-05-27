@@ -33,7 +33,9 @@ Local LLM intelligence is required for Research, Vision, and Semantic Search.
 
 ### 2. Quick Start
 ```bash
-./musu-crawl init
+./musu-crawl init --project my-research
+./musu-crawl doctor --out ./wiki --project default
+./musu-crawl doctor --out ./wiki --project default --fix
 ./musu-crawl fetch web https://go.dev/blog/go1.22 --project my-research
 ```
 
@@ -58,6 +60,11 @@ Add the following to your `claude_desktop_config.json`:
 - `search "[query]"`: Local keyword and semantic vector search.
 - `index --semantic`: Refresh the global knowledge graph and embeddings.
 - `serve`: Launch the Galaxy Dashboard (Port 8080).
+- `doctor`: Verify wiki/index presence and AI endpoint connectivity before long runs.
+
+`doctor` also supports `--json`, which is useful when another agent or CI job needs deterministic preflight output.
+`doctor --fix` can safely create a missing local wiki scaffold before longer runs.
+Use `doctor --capability-source web --capability-source gh --capability-source yt` to get a machine-readable static source capability matrix during setup. This is capability metadata, not a live credential or reachability probe.
 
 ---
 
@@ -68,4 +75,4 @@ Private research data is stored in the `wiki/` directory and is strictly exclude
 
 ## 🔗 The Ecosystem
 - **musu-marketer:** The "Voice" that uses this knowledge for strategy.
-- **musu-nurikun:** The "Hand" that creates identities and acts on the web.
+- **musu-nurikun:** The "Hand" that works inboxes and opt-in mailing lists from grounded knowledge.

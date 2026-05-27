@@ -1,43 +1,52 @@
-# Master Plan: musu-crawl-ai Development (STATUS: V0.8.0 AGENT-NATIVE RELEASE)
+# musu-crawl-ai Spec (STATUS: v0.8.0 AGENT-NATIVE)
 
-## 🎯 Project Goal
-A high-performance, autonomous knowledge harvester and LLM Wiki generator. v0.8.0 achieves **"Agent-Native"** status, providing a seamless bridge for AI agents like Claude and Gemini to discover and use research tools.
+## Goal
+`musu-crawl-ai` is the Musu ecosystem's "Brain." It harvests source material, compiles it into a local wiki, and exposes search/research/fetch primitives to both humans and other agents.
 
-## ✅ Completed Milestones
+## Current Product Truth
 
-### Phase 1-9: The Harvester Engine
-- [x] **Universal Fetchers:** YouTube, GitHub, Arxiv, Reddit, HF, Web.
-- [x] **Robustness:** Mutex thread-safety, PDF OCR fallback.
+### Harvesting
+- supported source families include `web`, `yt`, `gh`, `arxiv`, `reddit`, `hf`, and `x`
+- harvested material lands in a local markdown wiki rooted at `./wiki` by default
+- project scoping is handled under `wiki/projects/<project>`
 
-### Phase 10-26: Intelligence, Vision & Live Sync
-- [x] **Recursive Research:** Multi-agent loops (Planner -> Searcher -> Harvester -> Analyst).
-- [x] **Vision Intelligence:** Local **LLaVA** describing images.
-- [x] **Live Knowledge Sync:** Incremental per-document indexing for near-instant search — no full re-walk or re-embedding of existing docs on each fetch. (Note: the index/vector files are rewritten per save, so a bulk crawl is O(N²) in write cost — a known optimization target, not O(1).)
+### Research And Search
+- `fetch` acquires raw source material
+- `compile` links harvested markdown into a more useful wiki graph
+- `search` supports local keyword and semantic retrieval
+- `research` orchestrates a multi-step planning/search/harvest/analyze loop
 
-### Phase 27: AX Optimization (v0.8.0 New)
-- [x] **Machine-Readable Layer:** Global `--json` flag for deterministic, noise-free agent parsing.
-- [x] **Model Context Protocol (MCP):** Stdio-based MCP server exposing `fetch`, `search`, and `research` as native tools.
-- [x] **Agentic Error Recovery:** Structured JSON errors with `agent_actionable_fix` tips.
-- [x] **Architecture Refactor:** Centralized high-level research actions into a unified `agent.Orchestrator`.
+### Preflight / Recovery
+- `doctor` verifies:
+  - wiki presence
+  - search index presence
+  - project directory presence
+  - AI endpoint reachability
+- `doctor --fix` can safely create a missing local wiki scaffold
+- `doctor --capability-source` exposes static source capability metadata during setup
+- `--json` provides deterministic machine-readable output
 
-## 🧐 Qualitative Evaluation (v0.8.0 Final Audit)
+### Important Contract Detail
+`--capability-source` is intentionally static metadata. It is not a live probe of credentials, network health, or external service reachability.
 
-### 1. Agent Experience (AX)
-- **Audit Verdict: [PASS - EXCELLENT]**
-- The system has successfully transitioned from a human-centric CLI to an agent-first backend. The `--json` mode eliminates the high "cognitive load" for LLMs trying to parse unstructured logs.
+## Completed Milestones
+- [x] multi-source harvesting
+- [x] project-scoped wiki layout
+- [x] JSON output mode
+- [x] MCP server surface
+- [x] doctor preflight with `--fix`
+- [x] capability metadata output for setup-time automation
 
-### 2. Native Ecosystem Integration
-- **Audit Verdict: [PASS - PROFESSIONAL]**
-- The MCP server implementation is robust. By using `agent.Orchestrator`, we ensure that any bug fixes or feature additions automatically propagate to both CLI and MCP interfaces.
+## Known Constraints
+- `init` still probes the default local AI port instead of the configured `--ai-url`
+- source capability metadata is not a live readiness probe
+- bulk crawl indexing still rewrites index/vector artifacts repeatedly and is not yet optimized for large N
 
-### 3. Structural Hardness
-- **Audit Verdict: [PASS]**
-- Resource management (connection pooling) and concurrency (mutexes) are at production-grade standards. The tool scales gracefully to high-bandwidth data requirements.
-
-## 🚀 Next Steps (v0.9.0 Horizon)
-1. **Dynamic Reranking:** Use local cross-encoders to rank search hits before synthesis.
-2. **Cloud Vector Sync:** Sync local `musu.vectors.json` to Pinecone/Weaviate for distributed RAG.
+## Next Work
+1. Make `init` use the configured AI endpoint.
+2. Add optional live source probes for credentials or network reachability.
+3. Separate static capability metadata from live doctor logic more cleanly.
 
 ---
 **Build Date:** 2026-05-27
-**Status:** 🤖 AGENT NATIVE READY
+**Status:** 🧠 BRAIN READY
