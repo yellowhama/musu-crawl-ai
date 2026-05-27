@@ -24,8 +24,11 @@ func NewOrchestrator(wikiDir string) *Orchestrator {
 }
 
 func (o *Orchestrator) FetchAction(source, id, project, lang, model string) (string, error) {
+	conf, _ := utils.LoadConfig(project)
+	if model == "" { model = conf.AIModel }
+	
 	proc := processor.NewWikiProcessor(o.WikiDir, project)
-	_, text, _, _, err := FetchAndSave(source, id, lang, proc, model)
+	_, text, _, _, err := FetchAndSave(source, id, lang, proc, model, conf.AIBaseURL)
 	if err != nil {
 		return "", err
 	}
@@ -40,16 +43,19 @@ func (o *Orchestrator) SearchAction(queryStr, project string, semantic bool, mod
 }
 
 func (o *Orchestrator) ResearchAction(question, project string, maxDepth int, model string) (string, error) {
+	conf, _ := utils.LoadConfig(project)
+	if model == "" { model = conf.AIModel }
+	
 	customPersona := ""
 	personaPath := filepath.Join(o.WikiDir, "projects", project, "PROMPT.md")
 	if data, err := os.ReadFile(personaPath); err == nil {
 		customPersona = string(data)
 	}
 
-	ollama := NewOllamaClient(model)
-	planner := &Planner{Client: ollama, CustomPersona: customPersona}
+	client := NewAgentClient(conf.AIBaseURL, model, "")
+	planner := &Planner{Client: client, CustomPersona: customPersona}
 	searcher := &Searcher{}
-	analyst := &Analyst{Client: ollama, CustomPersona: customPersona}
+	analyst := &Analyst{Client: client, CustomPersona: customPersona}
 	proc := processor.NewWikiProcessor(o.WikiDir, project)
 
 	seenURLs := make(map[string]bool)
@@ -74,7 +80,7 @@ func (o *Orchestrator) ResearchAction(question, project string, maxDepth int, mo
 			for _, url := range newURLs {
 				source := utils.DetectSource(url)
 				if source == "" { source = "web" }
-				_, text, reliability, _, err := FetchAndSave(source, url, "en", proc, model)
+				_, text, reliability, _, err := FetchAndSave(source, url, "en", proc, model, conf.AIBaseURL)
 				if err == nil {
 					allSources = append(allSources, SourceContent{
 						ID:          url,
@@ -132,6 +138,9 @@ func (o *Orchestrator) runBleveSearch(queryStr, project string) ([]processor.Ind
 }
 
 func (o *Orchestrator) runSemanticSearch(queryStr, model, project string) ([]processor.IndexEntry, error) {
+	conf, _ := utils.LoadConfig(project)
+	if model == "" { model = conf.AIModel }
+
 	vectorFile := filepath.Join(o.WikiDir, "musu.vectors.json")
 	indexFile := filepath.Join(o.WikiDir, "index.json")
 	vstore := processor.NewVectorStore()
@@ -147,8 +156,8 @@ func (o *Orchestrator) runSemanticSearch(queryStr, model, project string) ([]pro
 		}
 	}
 
-	ollama := NewOllamaClient(model)
-	qVec, err := ollama.Embed(queryStr)
+	client := NewAgentClient(conf.AIBaseURL, model, "")
+	qVec, err := client.Embed(queryStr)
 	if err != nil { return nil, err }
 
 	matches := vstore.Search(qVec, 10)
@@ -165,9 +174,6 @@ func (o *Orchestrator) runSemanticSearch(queryStr, model, project string) ([]pro
 // buildRecursiveQuery inspects a synthesis report for unresolved CONTRADICTIONS
 // and MISSING points and composes the goal for the next research depth. It
 // returns "" when the report signals completeness (no follow-up worth pursuing).
-//
-// The CONTRADICTIONS capture is non-greedy and stops at the MISSING marker so
-// the contradiction text does not absorb the entire MISSING section.
 func buildRecursiveQuery(report string) string {
 	recursiveQuery := ""
 	contraMatch := regexp.MustCompile(`(?s)CONTRADICTIONS:\s*(.*?)(?:\n\s*MISSING:|$)`).FindStringSubmatch(report)
@@ -186,4 +192,3 @@ func buildRecursiveQuery(report string) string {
 	}
 	return recursiveQuery
 }
-

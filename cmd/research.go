@@ -21,7 +21,7 @@ var researchCmd = &cobra.Command{
 
 		model, _ := cmd.Flags().GetString("model")
 		if !cmd.Flags().Changed("model") {
-			model = conf.OllamaModel
+			model = conf.AIModel
 		}
 
 		out, _ := cmd.Flags().GetString("out")

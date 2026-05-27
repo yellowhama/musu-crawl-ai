@@ -6,7 +6,7 @@ import (
 )
 
 type Analyst struct {
-	Client        *OllamaClient
+	Client        *AgentClient
 	CustomPersona string
 }
 

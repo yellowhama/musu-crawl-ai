@@ -10,7 +10,7 @@ import (
 )
 
 type Compiler struct {
-	Client  *OllamaClient
+	Client  *AgentClient
 	Index   bleve.Index
 	WikiDir string
 }
@@ -21,7 +21,7 @@ type Relationship struct {
 	Explanation string
 }
 
-func NewCompiler(client *OllamaClient, wikiDir string) (*Compiler, error) {
+func NewCompiler(client *AgentClient, wikiDir string) (*Compiler, error) {
 	blevePath := filepath.Join(wikiDir, "musu.bleve")
 	index, err := bleve.Open(blevePath)
 	if err != nil {

@@ -14,8 +14,9 @@ import (
 type Config struct {
 	Language    string
 	WikiDir     string
-	OllamaModel string
-	OllamaURL   string
+	AIModel     string
+	AIBaseURL   string
+	AIProvider  string
 	Project     string
 }
 
@@ -28,7 +29,8 @@ func LoadConfig(project string) (*Config, error) {
 	v.SetDefault("language", "ko")
 	v.SetDefault("out", "./wiki")
 	v.SetDefault("model", "llama3")
-	v.SetDefault("ollama_url", "http://localhost:11434/api/generate")
+	v.SetDefault("ai_provider", "ollama")
+	v.SetDefault("ai_url", "http://localhost:11434/v1")
 
 	// 2. Global Config (~/.musu/config.toml)
 	home, _ := os.UserHomeDir()
@@ -64,11 +66,12 @@ func LoadConfig(project string) (*Config, error) {
 	v.AutomaticEnv()
 
 	return &Config{
-		Language:    v.GetString("language"),
-		WikiDir:     v.GetString("out"),
-		OllamaModel: v.GetString("model"),
-		OllamaURL:   v.GetString("ollama_url"),
-		Project:     project,
+		Language:   v.GetString("language"),
+		WikiDir:    v.GetString("out"),
+		AIModel:    v.GetString("model"),
+		AIProvider: v.GetString("ai_provider"),
+		AIBaseURL:  v.GetString("ai_url"),
+		Project:    project,
 	}, nil
 }
 

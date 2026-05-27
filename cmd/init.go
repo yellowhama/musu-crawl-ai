@@ -40,15 +40,15 @@ var initCmd = &cobra.Command{
 			}
 		}
 
-		// 2. Check for Ollama
-		fmt.Print("🧠 Checking for local Ollama service... ")
+		// 2. Check for AI Service
+		fmt.Print("🧠 Checking for AI service (Ollama/SGLang)... ")
 		client := &http.Client{Timeout: 2 * time.Second}
-		resp, err := client.Get("http://localhost:11434/api/tags")
+		resp, err := client.Get("http://localhost:11434/v1/models") // Use standard OpenAI endpoint
 		if err != nil || resp.StatusCode != 200 {
-			fmt.Println("⚠️  Ollama not detected or not running. Local AI features (research, compile, semantic search) will be limited.")
-			fmt.Println("   Tip: Install Ollama at https://ollama.com to enable full intelligence.")
+			fmt.Println("⚠️  Local AI service not detected on default port. AI features will be limited.")
+			fmt.Println("   Tip: Start Ollama or SGLang to enable full intelligence.")
 		} else {
-			fmt.Println("✅ Ollama detected and active.")
+			fmt.Println("✅ AI service detected and active.")
 			resp.Body.Close()
 		}
 

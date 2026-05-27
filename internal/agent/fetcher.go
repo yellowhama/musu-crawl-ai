@@ -11,7 +11,7 @@ import (
 )
 
 // FetchAndSave handles the end-to-end process of fetching content and saving it to the wiki.
-func FetchAndSave(source, id, lang string, proc *processor.WikiProcessor, model string) (string, string, float64, []string, error) {
+func FetchAndSave(source, id, lang string, proc *processor.WikiProcessor, model, baseURL string) (string, string, float64, []string, error) {
 	title, text, err := DispatchFetch(source, id, lang)
 	if err != nil {
 		return "", "", 0, nil, err
@@ -21,7 +21,7 @@ func FetchAndSave(source, id, lang string, proc *processor.WikiProcessor, model 
 	summary := utils.Summarize(text, 3)
 
 	// AI Intelligence Setup
-	ollama := NewOllamaClient(model)
+	ollama := NewAgentClient(baseURL, model, "")
 
 	// Image Harvesting
 	imageDir := filepath.Join(proc.BaseDir, "projects", proc.Project, "images")

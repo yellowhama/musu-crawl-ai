@@ -23,7 +23,7 @@ var indexCmd = &cobra.Command{
 
 		var err error
 		if semantic {
-			ollama := agent.NewOllamaClient(model)
+			ollama := agent.NewAgentClient("", model, "")
 			err = proc.UpdateIndexWithEmbedder(ollama.Embed)
 		} else {
 			err = proc.UpdateIndex()

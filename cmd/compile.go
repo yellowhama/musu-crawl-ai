@@ -20,7 +20,7 @@ var compileCmd = &cobra.Command{
 		force, _ := cmd.Flags().GetBool("force")
 		project, _ := cmd.Flags().GetString("project")
 
-		ollama := agent.NewOllamaClient(model)
+		ollama := agent.NewAgentClient("", model, "")
 		compiler, err := agent.NewCompiler(ollama, out)
 		if err != nil {
 			fmt.Printf("❌ Error: %v\n", err)

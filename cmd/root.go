@@ -52,4 +52,9 @@ func Execute() error {
 
 func init() {
 	rootCmd.PersistentFlags().Bool("json", false, "Output in machine-readable JSON format")
+	rootCmd.PersistentFlags().String("ai-provider", "ollama", "AI provider (ollama, sglang, openai)")
+	rootCmd.PersistentFlags().String("ai-url", "http://localhost:11434/v1", "AI base URL")
+	
+	viper.BindPFlag("ai_provider", rootCmd.PersistentFlags().Lookup("ai-provider"))
+	viper.BindPFlag("ai_url", rootCmd.PersistentFlags().Lookup("ai-url"))
 }

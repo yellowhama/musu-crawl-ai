@@ -6,7 +6,7 @@ import (
 )
 
 type Planner struct {
-	Client        *OllamaClient
+	Client        *AgentClient
 	CustomPersona string
 }
 
