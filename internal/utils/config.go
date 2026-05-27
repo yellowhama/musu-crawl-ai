@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,7 +33,9 @@ func LoadConfig(project string) (*Config, error) {
 	// 2. Global Config (~/.musu/config.toml)
 	home, _ := os.UserHomeDir()
 	globalDir := filepath.Join(home, ".musu")
-	os.MkdirAll(globalDir, 0755)
+	if err := os.MkdirAll(globalDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create global config dir: %v", err)
+	}
 
 	v.SetConfigName("config")
 	v.SetConfigType("toml")

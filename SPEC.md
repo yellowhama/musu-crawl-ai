@@ -12,7 +12,7 @@ A high-performance, autonomous knowledge harvester and LLM Wiki generator. v0.8.
 ### Phase 10-26: Intelligence, Vision & Live Sync
 - [x] **Recursive Research:** Multi-agent loops (Planner -> Searcher -> Harvester -> Analyst).
 - [x] **Vision Intelligence:** Local **LLaVA** describing images.
-- [x] **Live Knowledge Sync:** O(1) incremental indexing for near-instant search.
+- [x] **Live Knowledge Sync:** Incremental per-document indexing for near-instant search — no full re-walk or re-embedding of existing docs on each fetch. (Note: the index/vector files are rewritten per save, so a bulk crawl is O(N²) in write cost — a known optimization target, not O(1).)
 
 ### Phase 27: AX Optimization (v0.8.0 New)
 - [x] **Machine-Readable Layer:** Global `--json` flag for deterministic, noise-free agent parsing.

@@ -246,7 +246,9 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 	var entries []IndexEntry
 	projectsDir := filepath.Join(p.BaseDir, "projects")
 	if _, err := os.Stat(projectsDir); os.IsNotExist(err) {
-		os.MkdirAll(projectsDir, 0755)
+		if mkErr := os.MkdirAll(projectsDir, 0755); mkErr != nil {
+			return fmt.Errorf("failed to create projects dir: %v", mkErr)
+		}
 	}
 
 	err = filepath.Walk(p.BaseDir, func(path string, info os.FileInfo, err error) error {

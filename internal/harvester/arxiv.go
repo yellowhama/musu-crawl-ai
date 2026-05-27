@@ -145,7 +145,9 @@ func (f *ArxivFetcher) performPDFOCR(pdfURL string) (string, error) {
 
 	// Extract images using pdfcpu
 	imgDir := filepath.Join(tempDir, "images")
-	os.MkdirAll(imgDir, 0755)
+	if err := os.MkdirAll(imgDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create image dir: %v", err)
+	}
 	if err := pdfapi.ExtractImagesFile(pdfPath, imgDir, nil, nil); err != nil {
 		return "", fmt.Errorf("pdfcpu image extraction failed: %v", err)
 	}

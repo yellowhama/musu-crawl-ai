@@ -10,6 +10,7 @@ import (
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/yellowhama/musu-crawl-ai/internal/processor"
+	"github.com/yellowhama/musu-crawl-ai/internal/utils"
 )
 
 // Orchestrator provides high-level actions for both CLI and MCP.
@@ -71,7 +72,7 @@ func (o *Orchestrator) ResearchAction(question, project string, maxDepth int, mo
 
 		if len(newURLs) > 0 {
 			for _, url := range newURLs {
-				source := autoDetectSource(url)
+				source := utils.DetectSource(url)
 				if source == "" { source = "web" }
 				_, text, reliability, _, err := FetchAndSave(source, url, "en", proc, model)
 				if err == nil {
@@ -91,22 +92,7 @@ func (o *Orchestrator) ResearchAction(question, project string, maxDepth int, mo
 		if err != nil { break }
 		finalReport = report
 
-		recursiveQuery := ""
-		contraMatch := regexp.MustCompile(`(?s)CONTRADICTIONS:\s*(.*)`).FindStringSubmatch(report)
-		if len(contraMatch) >= 2 {
-			ci := strings.TrimSpace(contraMatch[1])
-			if strings.ToLower(ci) != "none" && len(ci) > 5 {
-				recursiveQuery += "Resolve this contradiction: " + ci + ". "
-			}
-		}
-		missingMatch := regexp.MustCompile(`(?s)MISSING:\s*(.*)`).FindStringSubmatch(report)
-		if len(missingMatch) >= 2 {
-			mi := strings.TrimSpace(missingMatch[1])
-			if strings.ToLower(mi) != "none" && len(mi) > 5 {
-				recursiveQuery += "Investigate these missing points: " + mi
-			}
-		}
-
+		recursiveQuery := buildRecursiveQuery(report)
 		if recursiveQuery == "" { break }
 		currentGoal = recursiveQuery
 	}
@@ -176,13 +162,28 @@ func (o *Orchestrator) runSemanticSearch(queryStr, model, project string) ([]pro
 	return results, nil
 }
 
-func autoDetectSource(input string) string {
-	if strings.Contains(input, "youtube.com") || strings.Contains(input, "youtu.be") { return "yt" }
-	if strings.Contains(input, "github.com") { return "gh" }
-	if strings.Contains(input, "arxiv.org") { return "arxiv" }
-	if strings.Contains(input, "huggingface.co") { return "hf" }
-	if strings.Contains(input, "twitter.com") || strings.Contains(input, "x.com") { return "x" }
-	if strings.Contains(input, "reddit.com") { return "reddit" }
-	if strings.HasPrefix(input, "http") { return "web" }
-	return ""
+// buildRecursiveQuery inspects a synthesis report for unresolved CONTRADICTIONS
+// and MISSING points and composes the goal for the next research depth. It
+// returns "" when the report signals completeness (no follow-up worth pursuing).
+//
+// The CONTRADICTIONS capture is non-greedy and stops at the MISSING marker so
+// the contradiction text does not absorb the entire MISSING section.
+func buildRecursiveQuery(report string) string {
+	recursiveQuery := ""
+	contraMatch := regexp.MustCompile(`(?s)CONTRADICTIONS:\s*(.*?)(?:\n\s*MISSING:|$)`).FindStringSubmatch(report)
+	if len(contraMatch) >= 2 {
+		ci := strings.TrimSpace(contraMatch[1])
+		if strings.ToLower(ci) != "none" && len(ci) > 5 {
+			recursiveQuery += "Resolve this contradiction: " + ci + ". "
+		}
+	}
+	missingMatch := regexp.MustCompile(`(?s)MISSING:\s*(.*)`).FindStringSubmatch(report)
+	if len(missingMatch) >= 2 {
+		mi := strings.TrimSpace(missingMatch[1])
+		if strings.ToLower(mi) != "none" && len(mi) > 5 {
+			recursiveQuery += "Investigate these missing points: " + mi
+		}
+	}
+	return recursiveQuery
 }
+

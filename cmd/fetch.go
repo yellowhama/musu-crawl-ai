@@ -114,7 +114,7 @@ func runBatch(filePath string, numWorkers int, lang string, proc *processor.Wiki
 			jobs <- job{source: parts[0], id: parts[1]}
 		} else {
 			id := parts[0]
-			source := autoDetectSource(id)
+			source := utils.DetectSource(id)
 			if source != "" {
 				jobs <- job{source: source, id: id}
 			}
@@ -122,17 +122,6 @@ func runBatch(filePath string, numWorkers int, lang string, proc *processor.Wiki
 	}
 	close(jobs)
 	wg.Wait()
-}
-
-func autoDetectSource(input string) string {
-	if strings.Contains(input, "youtube.com") || strings.Contains(input, "youtu.be") { return "yt" }
-	if strings.Contains(input, "github.com") { return "gh" }
-	if strings.Contains(input, "arxiv.org") { return "arxiv" }
-	if strings.Contains(input, "huggingface.co") { return "hf" }
-	if strings.Contains(input, "twitter.com") || strings.Contains(input, "x.com") { return "x" }
-	if strings.Contains(input, "reddit.com") { return "reddit" }
-	if strings.HasPrefix(input, "http") { return "web" }
-	return ""
 }
 
 func init() {

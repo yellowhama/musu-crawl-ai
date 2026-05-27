@@ -30,7 +30,10 @@ var authSetCmd = &cobra.Command{
 		}
 
 		projectDir := filepath.Join(out, "projects", project)
-		os.MkdirAll(projectDir, 0755)
+		if err := os.MkdirAll(projectDir, 0755); err != nil {
+			fmt.Printf("❌ Failed to create project dir: %v\n", err)
+			return
+		}
 
 		envPath := filepath.Join(projectDir, ".env")
 

@@ -15,7 +15,10 @@ import (
 // and returns the modified markdown with relative local paths.
 // It also takes an optional visionFunc to generate captions for the images.
 func DownloadAndRelinkImages(markdown string, imageDir string, visionFunc func(string) (string, error)) string {
-	os.MkdirAll(imageDir, 0755)
+	if err := os.MkdirAll(imageDir, 0755); err != nil {
+		// Can't stage images locally; leave the markdown (and its remote links) untouched.
+		return markdown
+	}
 
 	// Regex to find markdown image links: ![alt](url)
 	re := regexp.MustCompile(`!\[(.*?)\]\((.*?)\)`)

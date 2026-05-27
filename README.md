@@ -17,7 +17,7 @@
 - **Researcher Mindset:** Socratic planning, hypothesis testing, and contradiction detection.
 - **Universal Harvesters:** YouTube (Transcript), Arxiv (HTML-first + OCR), GitHub, Reddit, and Web.
 - **Multi-Modal:** Automatic image harvesting and local description (via LLaVA).
-- **Live Sync:** O(1) incremental indexing for instant search availability.
+- **Live Sync:** Incremental per-fetch indexing — newly harvested documents are searchable immediately, without re-walking the filesystem or re-embedding the existing corpus.
 
 ### 🦾 Production-Grade Foundation
 - **Thread-Safety:** Mutex-protected indexing for high-concurrency parallel crawls.
