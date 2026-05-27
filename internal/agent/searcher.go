@@ -10,7 +10,9 @@ import (
 	"github.com/yellowhama/musu-crawl-ai/internal/utils"
 )
 
-type Searcher struct{}
+type Searcher struct {
+	BaseURL string
+}
 
 func (s *Searcher) DiscoverURLs(queries []string, limit int) []string {
 	uniqueURLs := make(map[string]bool)
@@ -39,7 +41,13 @@ func (s *Searcher) DiscoverURLs(queries []string, limit int) []string {
 }
 
 func (s *Searcher) searchDuckDuckGo(query string) []string {
-	searchURL := fmt.Sprintf("https://html.duckduckgo.com/html/?q=%s", url.QueryEscape(query))
+	baseURL := strings.TrimSpace(s.BaseURL)
+	searchURL := ""
+	if baseURL == "" {
+		searchURL = fmt.Sprintf("https://html.duckduckgo.com/html/?q=%s", url.QueryEscape(query))
+	} else {
+		searchURL = fmt.Sprintf("%s?q=%s", strings.TrimRight(baseURL, "/"), url.QueryEscape(query))
+	}
 
 	body, _, err := utils.GetWithRetry(searchURL, nil)
 	if err != nil {

@@ -71,6 +71,8 @@ JSON mode now uses the same top-level envelope as the other Musu tools: `status`
 The command surface now has local smoke coverage for `fetch web ...` and `search ...`, so bootstrap and retrieval paths are verified without relying on live external services.
 For a real endpoint-backed verification, set `MUSU_CRAWL_INTEGRATION_AI_URL` and run `go test -tags integration ./cmd`, or use `scripts/run-real-integration.ps1`.
 Set `MUSU_CRAWL_INTEGRATION_EMBED_MODEL` when the reachable endpoint exposes an embedding model other than the default `nomic-embed-text`.
+Set `MUSU_CRAWL_INTEGRATION_CHAT_MODEL` when the reachable endpoint exposes a chat model other than the default `llama3` for the real `research` smoke.
+`research` can now use `MUSU_SEARCH_BASE_URL` for a deterministic local search harness instead of live DuckDuckGo during integration or lab verification.
 The runner auto-probes `OLLAMA_HOST`, `127.0.0.1:11434`, and `localhost:11434`, checks both `/v1/models` and Ollama `/api/tags`, and prints explicit diagnostics when no reachable endpoint exists.
 Use `-Json -ProbeOnly` when another agent or CI step needs machine-readable integration readiness output without actually running the integration-tag tests.
 The JSON doctor now emits `issue_codes` such as `ollama_host_unspecified_bind_address`, `ollama_not_installed`, `localhost_probe_timeout`, and `missing_required_model`.

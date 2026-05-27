@@ -14,7 +14,9 @@
 - the runner now emits machine-readable JSON diagnostics (`-Json -ProbeOnly`) for CI or agent handoff
 - the JSON diagnostics now carry stable `issue_codes` so automation can distinguish bind-address misconfiguration from missing installs or timeouts
 - the real integration path is now model-configurable through `MUSU_CRAWL_INTEGRATION_EMBED_MODEL`
+- the real integration path is now also chat-model-configurable through `MUSU_CRAWL_INTEGRATION_CHAT_MODEL`
 - a real Ollama-backed `fetch web` + semantic `search` integration pass was verified with `nomic-embed-text`
+- a real Ollama-backed `research` command integration pass was verified with a deterministic local search harness
 - a command-flag state leak was caught under integration load and fixed in `search_test.go`
 - the integration doctor now treats `model` and `model:latest` as equivalent, avoiding false negatives against Ollama
 
@@ -35,5 +37,5 @@
 
 ## Immediate Priorities
 1. decide whether live source probes should exist at all
-2. add a real research-command smoke path with a controllable local search/AI harness
-3. split doctor reporting helpers from static capability metadata
+2. split doctor reporting helpers from static capability metadata
+3. decide whether the local-search seam should remain test-only documentation or grow into a supported alternative provider contract

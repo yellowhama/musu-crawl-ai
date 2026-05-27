@@ -54,7 +54,7 @@ func (o *Orchestrator) ResearchAction(question, project string, maxDepth int, mo
 
 	client := NewAgentClient(conf.AIBaseURL, model, "", o.WikiDir, project)
 	planner := &Planner{Client: client, CustomPersona: customPersona}
-	searcher := &Searcher{}
+	searcher := &Searcher{BaseURL: conf.SearchBaseURL}
 	analyst := &Analyst{Client: client, CustomPersona: customPersona}
 	proc := processor.NewWikiProcessor(o.WikiDir, project)
 

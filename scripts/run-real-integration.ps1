@@ -2,6 +2,7 @@
 param(
     [string]$AiUrl = $env:MUSU_CRAWL_INTEGRATION_AI_URL,
     [string]$EmbedModel = $env:MUSU_CRAWL_INTEGRATION_EMBED_MODEL,
+    [string]$ChatModel = $env:MUSU_CRAWL_INTEGRATION_CHAT_MODEL,
     [switch]$Json,
     [switch]$ProbeOnly
 )
@@ -106,6 +107,16 @@ function Test-RequiredModelAvailable([string[]]$AvailableModels, [string]$Requir
     return $false
 }
 
+function Get-MissingModels([string[]]$AvailableModels, [string[]]$RequiredModels) {
+    $missing = @()
+    foreach ($required in $RequiredModels) {
+        if (-not (Test-RequiredModelAvailable $AvailableModels $required)) {
+            $missing += $required
+        }
+    }
+    return @($missing | Select-Object -Unique)
+}
+
 function Resolve-AiUrl([string]$ExplicitUrl) {
     if ($ExplicitUrl) {
         return @{ Resolved = $ExplicitUrl; Source = 'explicit'; Diagnostics = @() }
@@ -145,7 +156,7 @@ function Get-ActionableFix([hashtable]$Result) {
         return "Loopback probes were refused. Start a local Ollama-compatible server or set MUSU_CRAWL_INTEGRATION_AI_URL explicitly."
     }
     if ($issueCodes -contains 'missing_required_model') {
-        return "The endpoint is reachable but the required embedding model is missing. Set MUSU_CRAWL_INTEGRATION_EMBED_MODEL to an available embedding model or pull the expected model."
+        return "The endpoint is reachable but one or more required models are missing. Set MUSU_CRAWL_INTEGRATION_EMBED_MODEL and MUSU_CRAWL_INTEGRATION_CHAT_MODEL to available models or pull the expected ones."
     }
     return "Set MUSU_CRAWL_INTEGRATION_AI_URL or start a local Ollama-compatible server."
 }
@@ -224,9 +235,13 @@ $result.status = "success"
 $result.resolved_ai_url = $AiUrl
 $result.message = "Reachable AI endpoint found."
 $result.available_models = @()
-$requiredModel = $EmbedModel
-if (-not $requiredModel) {
-    $requiredModel = "nomic-embed-text"
+$requiredEmbedModel = $EmbedModel
+if (-not $requiredEmbedModel) {
+    $requiredEmbedModel = "nomic-embed-text"
+}
+$requiredChatModel = $ChatModel
+if (-not $requiredChatModel) {
+    $requiredChatModel = "llama3"
 }
 foreach ($candidate in Get-OllamaCandidates) {
     if ($candidate -eq $AiUrl) {
@@ -236,17 +251,22 @@ foreach ($candidate in Get-OllamaCandidates) {
     }
 }
 
-if (-not (Test-RequiredModelAvailable $result.available_models $requiredModel)) {
+if (@(Get-MissingModels $result.available_models @($requiredEmbedModel, $requiredChatModel)).Count -gt 0) {
+    $missingModels = @(Get-MissingModels $result.available_models @($requiredEmbedModel, $requiredChatModel))
     $result.status = "error"
     $result.message = "Reachable AI endpoint found, but required model is missing."
     $result.issue_codes = @("missing_required_model")
+    $result.diagnostics += "missing model(s): $($missingModels -join ', ')"
     $result.actionable_fix = Get-ActionableFix $result
     Emit-Result $result 1
 }
 
 $env:MUSU_CRAWL_INTEGRATION_AI_URL = $AiUrl
 if (-not $env:MUSU_CRAWL_INTEGRATION_EMBED_MODEL) {
-    $env:MUSU_CRAWL_INTEGRATION_EMBED_MODEL = $requiredModel
+    $env:MUSU_CRAWL_INTEGRATION_EMBED_MODEL = $requiredEmbedModel
+}
+if (-not $env:MUSU_CRAWL_INTEGRATION_CHAT_MODEL) {
+    $env:MUSU_CRAWL_INTEGRATION_CHAT_MODEL = $requiredChatModel
 }
 if ($ProbeOnly) {
     Emit-Result $result 0

@@ -17,6 +17,7 @@ type Config struct {
 	AIModel     string
 	AIBaseURL   string
 	AIProvider  string
+	SearchBaseURL string
 	Project     string
 }
 
@@ -31,6 +32,7 @@ func LoadConfig(project string) (*Config, error) {
 	v.SetDefault("model", "llama3")
 	v.SetDefault("ai_provider", "ollama")
 	v.SetDefault("ai_url", "http://localhost:11434/v1")
+	v.SetDefault("search_base_url", "")
 
 	// 2. Global Config (~/.musu/config.toml)
 	home, _ := os.UserHomeDir()
@@ -71,6 +73,7 @@ func LoadConfig(project string) (*Config, error) {
 		AIModel:    v.GetString("model"),
 		AIProvider: firstNonEmpty(viper.GetString("ai_provider"), v.GetString("ai_provider")),
 		AIBaseURL:  firstNonEmpty(viper.GetString("ai_url"), v.GetString("ai_url")),
+		SearchBaseURL: v.GetString("search_base_url"),
 		Project:    project,
 	}, nil
 }
