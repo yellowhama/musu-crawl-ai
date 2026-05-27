@@ -40,7 +40,7 @@ var fetchCmd = &cobra.Command{
 
 		if compile {
 			fmt.Println("🧠 Auto-compiling knowledge graph relationships...")
-			ollama := agent.NewAgentClient(conf.AIBaseURL, model, "")
+			ollama := agent.NewAgentClient(conf.AIBaseURL, model, "", out, project)
 			compiler, err := agent.NewCompiler(ollama, out)
 			if err == nil {
 				summary := utils.Summarize(text, 2)

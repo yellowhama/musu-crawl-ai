@@ -20,8 +20,8 @@ func FetchAndSave(source, id, lang string, proc *processor.WikiProcessor, model,
 	tags := utils.ExtractKeywords(text, 5)
 	summary := utils.Summarize(text, 3)
 
-	// AI Intelligence Setup
-	ollama := NewAgentClient(baseURL, model, "")
+	// AI Intelligence Setup (Telemetry enabled)
+	ollama := NewAgentClient(baseURL, model, "", proc.BaseDir, proc.Project)
 
 	// Image Harvesting
 	imageDir := filepath.Join(proc.BaseDir, "projects", proc.Project, "images")

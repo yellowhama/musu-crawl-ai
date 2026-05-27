@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/yellowhama/musu-crawl-ai/internal/agent"
 	"github.com/yellowhama/musu-crawl-ai/internal/processor"
+	"github.com/yellowhama/musu-crawl-ai/internal/utils"
 )
 
 var indexCmd = &cobra.Command{
@@ -21,9 +22,10 @@ var indexCmd = &cobra.Command{
 
 		fmt.Printf("Indexing directory: %s (Project: %s)...\n", out, project)
 
+		conf, _ := utils.LoadConfig(project)
 		var err error
 		if semantic {
-			ollama := agent.NewAgentClient("", model, "")
+			ollama := agent.NewAgentClient(conf.AIBaseURL, model, "", out, project)
 			err = proc.UpdateIndexWithEmbedder(ollama.Embed)
 		} else {
 			err = proc.UpdateIndex()

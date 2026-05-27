@@ -52,7 +52,7 @@ func (o *Orchestrator) ResearchAction(question, project string, maxDepth int, mo
 		customPersona = string(data)
 	}
 
-	client := NewAgentClient(conf.AIBaseURL, model, "")
+	client := NewAgentClient(conf.AIBaseURL, model, "", o.WikiDir, project)
 	planner := &Planner{Client: client, CustomPersona: customPersona}
 	searcher := &Searcher{}
 	analyst := &Analyst{Client: client, CustomPersona: customPersona}
@@ -156,7 +156,7 @@ func (o *Orchestrator) runSemanticSearch(queryStr, model, project string) ([]pro
 		}
 	}
 
-	client := NewAgentClient(conf.AIBaseURL, model, "")
+	client := NewAgentClient(conf.AIBaseURL, model, "", o.WikiDir, project)
 	qVec, err := client.Embed(queryStr)
 	if err != nil { return nil, err }
 
@@ -171,9 +171,6 @@ func (o *Orchestrator) runSemanticSearch(queryStr, model, project string) ([]pro
 	return results, nil
 }
 
-// buildRecursiveQuery inspects a synthesis report for unresolved CONTRADICTIONS
-// and MISSING points and composes the goal for the next research depth. It
-// returns "" when the report signals completeness (no follow-up worth pursuing).
 func buildRecursiveQuery(report string) string {
 	recursiveQuery := ""
 	contraMatch := regexp.MustCompile(`(?s)CONTRADICTIONS:\s*(.*?)(?:\n\s*MISSING:|$)`).FindStringSubmatch(report)

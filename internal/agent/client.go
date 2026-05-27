@@ -8,32 +8,44 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
-// AgentClient is a generic OpenAI-compatible LLM client.
+// ExecutionTrace represents a single reasoning/action step by an agent.
+type ExecutionTrace struct {
+	Timestamp string `json:"timestamp"`
+	Project   string `json:"project"`
+	Role      string `json:"role"`
+	Goal      string `json:"goal"`
+	Prompt    string `json:"prompt"`
+	Response  string `json:"response"`
+	Status    string `json:"status"` // success | error
+	Error     string `json:"error,omitempty"`
+}
+
+// AgentClient is a generic OpenAI-compatible LLM client with Telemetry.
 type AgentClient struct {
 	BaseURL     string
 	Model       string
 	VisionModel string
+	WikiDir     string
+	Project     string
 	httpClient  *http.Client
 }
 
-func NewAgentClient(baseURL, model, visionModel string) *AgentClient {
-	if baseURL == "" {
-		baseURL = "http://localhost:11434/v1" // Default to local Ollama OpenAI endpoint
-	}
-	if model == "" {
-		model = "llama3"
-	}
-	if visionModel == "" {
-		visionModel = "llava"
-	}
+func NewAgentClient(baseURL, model, visionModel, wikiDir, project string) *AgentClient {
+	if baseURL == "" { baseURL = "http://localhost:11434/v1" }
+	if model == "" { model = "llama3" }
+	if visionModel == "" { visionModel = "llava" }
+	if wikiDir == "" { wikiDir = "./wiki" }
 
 	return &AgentClient{
 		BaseURL:     baseURL,
 		Model:       model,
 		VisionModel: visionModel,
+		WikiDir:     wikiDir,
+		Project:     project,
 		httpClient: &http.Client{
 			Timeout: 120 * time.Second,
 			Transport: &http.Transport{
@@ -43,6 +55,18 @@ func NewAgentClient(baseURL, model, visionModel string) *AgentClient {
 			},
 		},
 	}
+}
+
+func (c *AgentClient) logTrace(trace ExecutionTrace) {
+	date := time.Now().Format("2006-01-02")
+	logDir := filepath.Join(c.WikiDir, "telemetry", date)
+	os.MkdirAll(logDir, 0755)
+
+	filename := fmt.Sprintf("%s_%s_%d.json", trace.Role, c.Project, time.Now().UnixNano())
+	path := filepath.Join(logDir, filename)
+
+	data, _ := json.MarshalIndent(trace, "", "  ")
+	os.WriteFile(path, data, 0644)
 }
 
 // OpenAI Chat Completion structures
@@ -68,8 +92,16 @@ type ChatResponse struct {
 	} `json:"choices"`
 }
 
-// Ask sends a chat completion request.
+// Ask sends a chat completion request and records a trace.
 func (c *AgentClient) Ask(prompt string, jsonFormat bool) (string, error) {
+	trace := ExecutionTrace{
+		Timestamp: time.Now().Format(time.RFC3339),
+		Project:   c.Project,
+		Role:      "assistant", // Generic, specific agents should override or wrap this
+		Prompt:    prompt,
+		Status:    "success",
+	}
+
 	reqBody := ChatRequest{
 		Model: c.Model,
 		Messages: []ChatMessage{
@@ -87,25 +119,41 @@ func (c *AgentClient) Ask(prompt string, jsonFormat bool) (string, error) {
 
 	resp, err := c.httpClient.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
+		trace.Status = "error"
+		trace.Error = err.Error()
+		c.logTrace(trace)
 		return "", fmt.Errorf("AI connection failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		body, _ := io.ReadAll(resp.Body)
+		trace.Status = "error"
+		trace.Error = string(body)
+		c.logTrace(trace)
 		return "", fmt.Errorf("AI returned error %d: %s", resp.StatusCode, string(body))
 	}
 
 	var chatResp ChatResponse
 	if err := json.NewDecoder(resp.Body).Decode(&chatResp); err != nil {
+		trace.Status = "error"
+		trace.Error = err.Error()
+		c.logTrace(trace)
 		return "", fmt.Errorf("failed to decode AI response: %v", err)
 	}
 
 	if len(chatResp.Choices) == 0 {
+		trace.Status = "error"
+		trace.Error = "no choices returned"
+		c.logTrace(trace)
 		return "", fmt.Errorf("AI returned no choices")
 	}
 
-	return chatResp.Choices[0].Message.Content, nil
+	res := chatResp.Choices[0].Message.Content
+	trace.Response = res
+	c.logTrace(trace)
+
+	return res, nil
 }
 
 // OpenAI Embedding structures
