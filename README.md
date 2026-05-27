@@ -1,8 +1,20 @@
 # musu-crawl-ai
 
-> **The High-Bandwidth Data Supply Chain for AI Agents.**
+> Agent-native knowledge harvesting and local wiki building.
 
-`musu-crawl-ai` is a high-performance, agent-native knowledge harvester and LLM Wiki generator. It is the "Eye and Brain" of the Musu ecosystem, responsible for fetching, cleaning, and organizing world-wide knowledge into a structured, interlinked "AI Brain."
+`musu-crawl-ai` is the upstream knowledge system for the Musu stack. It fetches source material, normalizes it into a local wiki, keeps lexical and vector search surfaces warm, and exposes a CLI/MCP workflow that other agents can actually automate.
+
+## What It Is
+
+- A Go CLI for harvesting web, GitHub, Arxiv, Reddit, YouTube, and more
+- A local wiki + index + vector store pipeline for grounded downstream agents
+- A research tool that can plan, search, fetch, synthesize, and persist findings
+
+## Best For
+
+- building a project-specific LLM wiki
+- collecting sources before drafting or support automation
+- agent workflows that need durable local knowledge instead of one-off prompts
 
 ---
 
@@ -38,6 +50,12 @@ Local LLM intelligence is required for Research, Vision, and Semantic Search.
 ./musu-crawl doctor --out ./wiki --project default --fix
 ./musu-crawl fetch web https://go.dev/blog/go1.22 --project my-research
 ```
+
+Core flow:
+1. bootstrap a wiki/project
+2. verify local readiness
+3. fetch a source into the wiki
+4. search, research, and reuse it downstream
 
 ### 3. MCP Integration (For Claude/Cursor)
 Add the following to your `claude_desktop_config.json`:
