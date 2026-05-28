@@ -21,6 +21,11 @@
 - the integration doctor now treats `model` and `model:latest` as equivalent, avoiding false negatives against Ollama
 - index/telemetry I/O errors are no longer silent — failed `index.json`/`README` persistence in `wiki.go` returns an error and telemetry `logTrace` logs failures to stderr
 - the compiled binary is no longer tracked in git, ending recurring stale-exe-vs-source drift
+- triple-duplicated AgentClient + preflight Probe scaffolding consolidated into `github.com/yellowhama/musu-core@v0.1.0`; internal/agent + internal/preflight are now thin wrappers
+- MCP tool surface is finally callable from clients — parameter schemas declared (was empty before, blocking arg-passing)
+- `research` no longer silently no-ops on missing question; `search` distinguishes "no matches" from "nothing indexed" with an actionable hint
+- 5 ignored `json.Unmarshal` sites across orchestrator/wiki/youtube/web/server now surface parse failures to stderr — silent index corruption sealed
+- Docker deploy bundle brings the full ecosystem up under one compose with ollama, healthchecks, and end-to-end probe verification
 
 ## Strong Points
 - broad harvesting surface
@@ -35,9 +40,10 @@
 - doctor logic is starting to accumulate multiple roles in one command file
 
 ## Thermo Verdict
-`PASS WITH CONCERNS`
+`PASS` (no [CRITICAL]/[HIGH]/[MEDIUM]/[LOW] open, as of 2026-05-28 audit — see `C:\Users\empty\MUSU_THERMONUCLEAR_REVIEW_2026-05-28.md`)
 
 ## Immediate Priorities
 1. decide whether live source probes should exist at all
 2. split doctor reporting helpers from static capability metadata
-3. decide whether the local-search seam should remain test-only documentation or grow into a supported alternative provider contract
+3. optimize bulk-crawl index/vector rewrite cost (O(N²) write amplification on the live-sync path)
+4. (production hardening on the docker-compose bundle: TLS termination, log rotation, image registry push, scheduled batch crawls)

@@ -38,6 +38,13 @@
 - [x] capability metadata output for setup-time automation
 - [x] index and telemetry I/O errors are now surfaced (no silent index corruption, no silently-lost traces)
 - [x] compiled `musu-crawl.exe` binary is no longer tracked in git
+- [x] **Shared module integration**: `internal/agent/client.go`, `internal/preflight/doctor.go` now thin wrappers over `github.com/yellowhama/musu-core@v0.1.0` (agent + preflight Probe). 689 LOC ecosystem-wide deduplication.
+- [x] **MCP tool parameter schemas declared** — `fetch` / `search` / `research` now expose `WithString`/`WithNumber`/`WithBoolean`/`Required`/`Enum` so MCP clients can actually pass args.
+- [x] **`handleResearch` empty-input guard** — no longer returns silently on missing `question`.
+- [x] **`handleSearch` "no results" UX** — actionable hint ("try `fetch` first or project=all") instead of bare "Found 0 results".
+- [x] **`preflight.DoctorResult` JSON envelope** — snake_case `json` tags for consistency with inner Report.
+- [x] **All ignored `json.Unmarshal` sites guarded** (5 sites across orchestrator/wiki/youtube/web/server) — corrupted index.json now logs a stderr warning instead of silently returning empty.
+- [x] **Docker deploy bundle** — Dockerfile (alpine runtime, digest-pinned golang) + brings up under top-level docker-compose with ollama/marketer/nurikun. End-to-end `compose up` verified healthy.
 
 ## Known Constraints
 - `init` and `doctor` now probe the configured AI endpoint, but they still do not validate per-model compatibility beyond simple reachability

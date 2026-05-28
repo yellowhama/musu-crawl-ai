@@ -20,6 +20,12 @@
 - real integration now covers `research` as well as `fetch web` + semantic `search`
 - index/telemetry I/O errors are now surfaced — `internal/processor/wiki.go` returns wrapped errors on failed `index.json`/`README.md` writes; `internal/agent/client.go` `logTrace` logs mkdir/write failures to stderr instead of swallowing them
 - the compiled `musu-crawl.exe` is no longer tracked in git (already in `.gitignore`; the local file is retained)
+- `internal/agent/client.go` + `internal/preflight/doctor.go` now thin wrappers over `github.com/yellowhama/musu-core@v0.1.0` (agent + preflight Probe)
+- MCP tool parameter schemas declared (`WithString`/`WithNumber`/`WithBoolean`/`Required`/`Enum`) — clients can actually pass args to `fetch`/`search`/`research`
+- `handleResearch` guards empty `question` (no more silent no-op); `handleSearch` emits actionable hint on 0 results
+- all 5 ignored `json.Unmarshal` sites now log a stderr warning on parse failure (orchestrator, wiki, harvester/youtube, web/server handleIndex + handleAPIGraph) — silent index corruption closed
+- `preflight.DoctorResult` JSON envelope uses snake_case tags (consistent with inner Report)
+- Dockerfile added (alpine runtime, digest-pinned base) + brings up under top-level docker-compose alongside ollama/marketer/nurikun. End-to-end `compose up` verified healthy.
 
 ## Operator Flow
 1. `musu-crawl init --out ./wiki --project <name>`

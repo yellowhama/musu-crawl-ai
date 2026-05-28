@@ -9,7 +9,8 @@
 - `cmd/index.go`: index/vector refresh
 - `cmd/research.go`: orchestrated research loop
 - `cmd/serve.go`: local web dashboard
-- `cmd/mcp.go`: MCP server
+- `cmd/mcp.go`: MCP server (tool defs in `internal/agent/mcp_server.go`)
+- `Dockerfile`: alpine runtime image (digest-pinned golang build stage); see top-level `docker-compose.yml`
 
 ## Core Packages
 - `internal/harvester`: source fetchers
