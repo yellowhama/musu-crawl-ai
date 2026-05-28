@@ -26,6 +26,8 @@
 - all 5 ignored `json.Unmarshal` sites now log a stderr warning on parse failure (orchestrator, wiki, harvester/youtube, web/server handleIndex + handleAPIGraph) — silent index corruption closed
 - `preflight.DoctorResult` JSON envelope uses snake_case tags (consistent with inner Report)
 - Dockerfile added (alpine runtime, digest-pinned base) + brings up under top-level docker-compose alongside ollama/marketer/nurikun. End-to-end `compose up` verified healthy.
+- `.github/workflows/docker-publish.yml` added — tag-triggered multi-arch (linux/amd64+arm64) build & push to `ghcr.io/yellowhama/musu-crawl-ai:{tag,latest}` via Buildx + setup-qemu, strict semver tag pattern (`v[0-9]+.[0-9]+.[0-9]+[-*]`)
+- production hardening landed at the operator-local layer (top-level `docker-compose.yml` x-logging anchor + opt-in `tls`/`scheduler` profiles, `docker-compose.production.yml` GHCR overlay, `caddy/Caddyfile`, `ofelia/config.ini`) — all live-verified (Caddy TLS reverse-proxy + ofelia firing + ofelia healthcheck)
 
 ## Operator Flow
 1. `musu-crawl init --out ./wiki --project <name>`

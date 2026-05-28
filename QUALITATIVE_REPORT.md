@@ -26,6 +26,7 @@
 - `research` no longer silently no-ops on missing question; `search` distinguishes "no matches" from "nothing indexed" with an actionable hint
 - 5 ignored `json.Unmarshal` sites across orchestrator/wiki/youtube/web/server now surface parse failures to stderr — silent index corruption sealed
 - Docker deploy bundle brings the full ecosystem up under one compose with ollama, healthchecks, and end-to-end probe verification
+- production hardening track shipped at the operator-local layer: x-logging anchor (10MB×3 rotation per service), opt-in `tls` profile (Caddy auto-HTTPS via Let's Encrypt or internal CA for local dev), opt-in `scheduler` profile (ofelia sidecar), `docker-compose.production.yml` GHCR overlay, `.github/workflows/docker-publish.yml` for multi-arch (amd64+arm64) tag-triggered image publish
 
 ## Strong Points
 - broad harvesting surface

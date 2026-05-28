@@ -14,7 +14,8 @@
 ## P3
 - optimize index/vector rewrite cost for larger bulk crawls (current live-sync path is O(N) per doc / O(N²) per bulk crawl due to full index.json rewrites)
 - improve ecosystem docs so the same entrypoint exists in all three repos
-- production hardening on the docker-compose bundle: TLS termination, log rotation, image registry push, scheduled batch crawls
+- ~~production hardening on the docker-compose bundle: TLS termination, log rotation, image registry push, scheduled batch crawls~~ — CLOSED 2026-05-28. Caddy `tls` profile (auto-HTTPS), x-logging anchor (10MB×3 rotation), `.github/workflows/docker-publish.yml` for GHCR push, ofelia `scheduler` profile available for crawl/research crons too (only nurikun-watch wired today; add `[job-exec "crawl-research"]` to `ofelia/config.ini` if desired).
+- first real GHCR push validation — operator pushes a `vX.Y.Z` tag and confirms the workflow publishes `ghcr.io/yellowhama/musu-crawl-ai:vX.Y.Z` + `:latest`
 
 ## Verified Integration Harness
 - set `MUSU_CRAWL_INTEGRATION_AI_URL`

@@ -11,6 +11,7 @@
 - `cmd/serve.go`: local web dashboard
 - `cmd/mcp.go`: MCP server (tool defs in `internal/agent/mcp_server.go`)
 - `Dockerfile`: alpine runtime image (digest-pinned golang build stage); see top-level `docker-compose.yml`
+- `.github/workflows/docker-publish.yml`: tag-triggered multi-arch (amd64+arm64) GHCR publish to `ghcr.io/yellowhama/musu-crawl-ai`
 
 ## Core Packages
 - `internal/harvester`: source fetchers
