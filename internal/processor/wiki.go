@@ -153,7 +153,9 @@ func (p *WikiProcessor) indexSingleDocumentLocked(entry IndexEntry, embedder fun
 	// 3. JSON Index
 	var entries []IndexEntry
 	if data, err := os.ReadFile(indexFile); err == nil {
-		json.Unmarshal(data, &entries)
+		if uerr := json.Unmarshal(data, &entries); uerr != nil {
+			fmt.Fprintf(os.Stderr, "warn: parse %s: %v\n", indexFile, uerr)
+		}
 	}
 	
 	found := false

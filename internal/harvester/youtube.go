@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 
@@ -58,7 +59,9 @@ func (f *YouTubeFetcher) Fetch(videoID string) (string, string, error) {
 	var pr PlayerResponse
 	apiKey := ""
 	if len(matches) >= 2 {
-		json.Unmarshal([]byte(matches[1]), &pr)
+		if uerr := json.Unmarshal([]byte(matches[1]), &pr); uerr != nil {
+			fmt.Fprintf(os.Stderr, "warn: parse youtube player response: %v\n", uerr)
+		}
 	}
 
 	reKey := regexp.MustCompile(`"INNERTUBE_API_KEY":"([^"]+)"`)

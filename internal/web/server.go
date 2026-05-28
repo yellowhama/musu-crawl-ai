@@ -43,7 +43,9 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	var allEntries []processor.IndexEntry
 
 	if data, err := os.ReadFile(indexFile); err == nil {
-		json.Unmarshal(data, &allEntries)
+		if uerr := json.Unmarshal(data, &allEntries); uerr != nil {
+			fmt.Fprintf(os.Stderr, "warn: parse %s: %v\n", indexFile, uerr)
+		}
 	}
 
 	var filtered []processor.IndexEntry
