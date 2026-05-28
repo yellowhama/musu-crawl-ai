@@ -169,8 +169,10 @@ func (p *WikiProcessor) indexSingleDocumentLocked(entry IndexEntry, embedder fun
 	}
 
 	jsonData, _ := json.MarshalIndent(entries, "", "  ")
-	os.WriteFile(indexFile, jsonData, 0644)
-	
+	if err := os.WriteFile(indexFile, jsonData, 0644); err != nil {
+		return fmt.Errorf("write index %s: %v", indexFile, err)
+	}
+
 	return nil
 }
 
@@ -292,9 +294,13 @@ func (p *WikiProcessor) updateIndexWithEmbedderLocked(embedder func(string) ([]f
 		return err
 	}
 
-	os.WriteFile(readmeFile, []byte(sb.String()), 0644)
+	if err := os.WriteFile(readmeFile, []byte(sb.String()), 0644); err != nil {
+		return fmt.Errorf("write readme %s: %v", readmeFile, err)
+	}
 	jsonData, _ := json.MarshalIndent(entries, "", "  ")
-	os.WriteFile(indexFile, jsonData, 0644)
+	if err := os.WriteFile(indexFile, jsonData, 0644); err != nil {
+		return fmt.Errorf("write index %s: %v", indexFile, err)
+	}
 	return p.vstore.Save(vectorFile)
 }
 
