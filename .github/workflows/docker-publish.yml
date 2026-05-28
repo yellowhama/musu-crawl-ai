@@ -1,0 +1,46 @@
+name: Publish container image to GHCR
+
+# Triggers:
+#   - any tag push matching v* (semver tags drive image tags)
+#   - manual run from the Actions UI (workflow_dispatch) for ad-hoc builds
+#
+# Image: ghcr.io/yellowhama/musu-crawl-ai
+#   - `${{ github.ref_name }}` (e.g. v0.8.0) — pinned tag, what production uses
+#   - `latest`                                — moving tag for dev / convenience
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ghcr.io/yellowhama/musu-crawl-ai:${{ github.ref_name }}
+            ghcr.io/yellowhama/musu-crawl-ai:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
