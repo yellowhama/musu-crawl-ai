@@ -15,7 +15,9 @@
 - optimize index/vector rewrite cost for larger bulk crawls (current live-sync path is O(N) per doc / O(N²) per bulk crawl due to full index.json rewrites)
 - improve ecosystem docs so the same entrypoint exists in all three repos
 - ~~production hardening on the docker-compose bundle: TLS termination, log rotation, image registry push, scheduled batch crawls~~ — CLOSED 2026-05-28. Caddy `tls` profile (auto-HTTPS), x-logging anchor (10MB×3 rotation), `.github/workflows/docker-publish.yml` for GHCR push, ofelia `scheduler` profile available for crawl/research crons too (only nurikun-watch wired today; add `[job-exec "crawl-research"]` to `ofelia/config.ini` if desired).
-- first real GHCR push validation — operator pushes a `vX.Y.Z` tag and confirms the workflow publishes `ghcr.io/yellowhama/musu-crawl-ai:vX.Y.Z` + `:latest`
+- ~~first real GHCR push validation — operator pushes a `vX.Y.Z` tag and confirms the workflow publishes `ghcr.io/yellowhama/musu-crawl-ai:vX.Y.Z` + `:latest`~~ — VALIDATED 2026-05-28 against musu-marketer (`v2.0.4` published end-to-end with multi-arch amd64+arm64 + Trivy CRITICAL/HIGH scan + SARIF upload, ~8.4 min total). Same workflow shape applies here — first crawl-ai tag (`vX.Y.Z`) push will publish to `ghcr.io/yellowhama/musu-crawl-ai`.
+- ~~README/AGENTS `claude mcp add --env ...` doc (F6 audit)~~ — CLOSED 2026-05-28 (`2500f3f`)
+- ~~Trivy CRITICAL/HIGH scan + SARIF upload in docker-publish workflow~~ — CLOSED 2026-05-28 (`aafbc4c`, action `aquasecurity/trivy-action@v0.36.0`)
 
 ## Verified Integration Harness
 - set `MUSU_CRAWL_INTEGRATION_AI_URL`
