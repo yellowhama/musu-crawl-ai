@@ -108,6 +108,12 @@ func handleSearch(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallTo
 		return mcp.NewToolResultError(err.Error()), nil
 	}
 
+	if len(entries) == 0 {
+		return mcp.NewToolResultText(fmt.Sprintf(
+			"Found 0 results for %q (project=%q). If the wiki is empty, run 'fetch' first. To widen the scope, pass project='all'.",
+			query, project)), nil
+	}
+
 	resText := fmt.Sprintf("Found %d results:\n", len(entries))
 	for i, e := range entries {
 		resText += fmt.Sprintf("%d. [%s] %s (ID: %s, Project: %s)\nSummary: %s\n\n", i+1, e.Source, e.Title, e.ID, e.Project, e.Summary)
