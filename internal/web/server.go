@@ -158,7 +158,9 @@ func (s *Server) handleAPIGraph(w http.ResponseWriter, r *http.Request) {
 	indexFile := filepath.Join(s.WikiDir, "index.json")
 	var entries []processor.IndexEntry
 	if data, err := os.ReadFile(indexFile); err == nil {
-		json.Unmarshal(data, &entries)
+		if uerr := json.Unmarshal(data, &entries); uerr != nil {
+			fmt.Fprintf(os.Stderr, "warn: parse %s: %v\n", indexFile, uerr)
+		}
 	}
 
 	type Node struct {
