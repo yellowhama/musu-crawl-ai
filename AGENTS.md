@@ -30,6 +30,32 @@ This tool is a collection of high-quality **Knowledge Primitives**. You are enco
 1.  **Steer Yourself:** Write specific research instructions to `wiki/projects/{name}/PROMPT.md`.
 2.  **Auth Management:** Run `.\musu-crawl auth set KEY VALUE --project {name}` to store project-scoped secrets (e.g., API keys).
 
+## 🔌 MCP Server Registration
+
+The MCP server inherits its environment from the registering process. Naive `claude mcp add` registrations end up running with default-only config (`localhost:11434/v1`, default model, etc.) — the `fetch`, `search`, and `research` MCP tools then talk to the wrong endpoint or model.
+
+Register with explicit `--env` flags so the server sees the same values your shell does:
+
+```powershell
+# Windows / PowerShell
+claude mcp add -s user musu-crawl `
+  -- musu-crawl.exe mcp `
+  --env MUSU_AI_URL=http://localhost:11434/v1 `
+  --env MUSU_AI_MODEL=llama3.2:1b `
+  --env MUSU_AI_PROVIDER=ollama
+```
+
+```bash
+# Linux / macOS
+claude mcp add -s user musu-crawl \
+  -- musu-crawl mcp \
+  --env MUSU_AI_URL=http://localhost:11434/v1 \
+  --env MUSU_AI_MODEL=llama3.2:1b \
+  --env MUSU_AI_PROVIDER=ollama
+```
+
+Restart your Claude session after `claude mcp add` — tool schemas are read at session start. Verify via the `doctor` CLI (or by invoking one of the MCP tools) that the server is hitting your real endpoint, not the default fallback.
+
 ## 🛑 Critical Mandates for Agents
 - **Self-Healing:** If a command fails (e.g., missing Tesseract or Ollama), gracefully switch to your own logic (manual analysis or text-only extraction) and notify the user.
 - **Preflight Honesty:** Treat `--capability-source` as static metadata, not as proof that an external source is reachable or authenticated.

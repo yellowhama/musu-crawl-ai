@@ -70,6 +70,32 @@ Add the following to your `claude_desktop_config.json`:
 }
 ```
 
+### 4. MCP Server Registration (Claude Code CLI)
+
+The MCP server inherits its environment from the registering process. Naive `claude mcp add` registrations end up running with default-only config (`localhost:11434/v1`, default model, etc.) — operators then wonder why `fetch`, `search`, and `research` are talking to the wrong endpoint or model.
+
+Register with explicit `--env` flags so the server sees the same values your shell does:
+
+```powershell
+# Windows / PowerShell
+claude mcp add -s user musu-crawl `
+  -- musu-crawl.exe mcp `
+  --env MUSU_AI_URL=http://localhost:11434/v1 `
+  --env MUSU_AI_MODEL=llama3.2:1b `
+  --env MUSU_AI_PROVIDER=ollama
+```
+
+```bash
+# Linux / macOS
+claude mcp add -s user musu-crawl \
+  -- musu-crawl mcp \
+  --env MUSU_AI_URL=http://localhost:11434/v1 \
+  --env MUSU_AI_MODEL=llama3.2:1b \
+  --env MUSU_AI_PROVIDER=ollama
+```
+
+Restart your Claude session after `claude mcp add` — tool schemas are read at session start. Verify with the `doctor` CLI (or the `fetch`/`search`/`research` MCP tools) returning results from your real endpoint, not the default fallback.
+
 ---
 
 ## 📖 Core Commands
