@@ -36,6 +36,8 @@
 - [x] MCP server surface
 - [x] doctor preflight with `--fix`
 - [x] capability metadata output for setup-time automation
+- [x] index and telemetry I/O errors are now surfaced (no silent index corruption, no silently-lost traces)
+- [x] compiled `musu-crawl.exe` binary is no longer tracked in git
 
 ## Known Constraints
 - `init` and `doctor` now probe the configured AI endpoint, but they still do not validate per-model compatibility beyond simple reachability

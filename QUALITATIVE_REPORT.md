@@ -19,6 +19,8 @@
 - a real Ollama-backed `research` command integration pass was verified with a deterministic local search harness
 - a command-flag state leak was caught under integration load and fixed in `search_test.go`
 - the integration doctor now treats `model` and `model:latest` as equivalent, avoiding false negatives against Ollama
+- index/telemetry I/O errors are no longer silent — failed `index.json`/`README` persistence in `wiki.go` returns an error and telemetry `logTrace` logs failures to stderr
+- the compiled binary is no longer tracked in git, ending recurring stale-exe-vs-source drift
 
 ## Strong Points
 - broad harvesting surface

@@ -18,6 +18,8 @@
 - `init` now writes `config.toml`, `PROMPT.md`, and `NEXT_STEPS.md` under each project and returns bootstrap metadata in `--json`
 - `research` can now point at a deterministic local search harness through `MUSU_SEARCH_BASE_URL`
 - real integration now covers `research` as well as `fetch web` + semantic `search`
+- index/telemetry I/O errors are now surfaced — `internal/processor/wiki.go` returns wrapped errors on failed `index.json`/`README.md` writes; `internal/agent/client.go` `logTrace` logs mkdir/write failures to stderr instead of swallowing them
+- the compiled `musu-crawl.exe` is no longer tracked in git (already in `.gitignore`; the local file is retained)
 
 ## Operator Flow
 1. `musu-crawl init --out ./wiki --project <name>`
